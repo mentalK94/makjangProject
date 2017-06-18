@@ -46,6 +46,7 @@ public class ScoutManager {
 		// scoutUnit 을 지정하고, scoutUnit 의 이동을 컨트롤함. 
 		assignScoutIfNeeded();
 		moveScoutUnit();
+		moveOverload();
 
 		// 참고로, scoutUnit 의 이동에 의해 발견된 정보를 처리하는 것은 InformationManager.update() 에서 수행함
 	}
@@ -398,5 +399,34 @@ public class ScoutManager {
 	public Vector<Position> getEnemyRegionVertices()
 	{
 		return enemyBaseRegionVertices;
+	}
+	
+	// 오버로드를 이동
+	public void moveOverload() {
+		BaseLocation myBaseLocation = InformationManager.Instance().getMainBaseLocation(MyBotModule.Broodwar.self());
+		BaseLocation enemyBaseLocation = InformationManager.Instance().getMainBaseLocation(InformationManager.Instance().enemyPlayer);
+		
+		Chokepoint firstChokePoint = BWTA.getNearestChokepoint(myBaseLocation.getTilePosition());
+		Boolean firstOverload = false;
+		
+		if(!firstOverload){
+			for (Unit unit : MyBotModule.Broodwar.self().getUnits()) {
+				if (unit.getType() == UnitType.Zerg_Overlord) {
+						commandUtil.move(unit, firstChokePoint.getCenter());
+						firstOverload = true;
+						break;
+				}
+			}
+		}
+
+		if (enemyBaseLocation != null && firstOverload)
+		{
+			Chokepoint enemyChokePoint = BWTA.getNearestChokepoint(InformationManager.Instance().getMainBaseLocation(InformationManager.Instance().enemyPlayer).getTilePosition());
+			for (Unit unit : MyBotModule.Broodwar.self().getUnits()) {
+				if (unit.getType() == UnitType.Zerg_Overlord ) {
+						commandUtil.move(unit, enemyChokePoint.getCenter());
+				}
+			}
+		}
 	}
 }
