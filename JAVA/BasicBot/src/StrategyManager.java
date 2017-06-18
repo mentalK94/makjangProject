@@ -656,7 +656,7 @@ public class StrategyManager {
 			}
 
 			// Zerg_Zergling 유닛이 3개 이상 생산되었고, 적군 위치가 파악되었으면 총공격 모드로 전환
-			if (MyBotModule.Broodwar.self().completedUnitCount(UnitType.Zerg_Zergling) % 3 == 0) {
+			if (MyBotModule.Broodwar.self().completedUnitCount(UnitType.Zerg_Zergling) >= 3) {
 				if (InformationManager.Instance().enemyPlayer != null
 					&& InformationManager.Instance().enemyRace != Race.Unknown  
 					&& InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).size() > 0) {				
