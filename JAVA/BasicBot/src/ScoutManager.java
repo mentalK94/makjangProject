@@ -84,6 +84,10 @@ public class ScoutManager {
 					// 정찰 나갈 일꾼이 없으면, 아무것도 하지 않는다
 					if (unit != null)
 					{
+					    // 정찰유닛 지정시 미네랄을 들고있으면 해처리찍고 출발
+						if (unit.isCarryingMinerals()) {
+							commandUtil.move(unit, myBaseLocation.getPosition());
+						}
 						// set unit as scout unit
 						currentScoutUnit = unit;
 						WorkerManager.Instance().setScoutWorker(currentScoutUnit);
@@ -407,24 +411,21 @@ public class ScoutManager {
 		BaseLocation enemyBaseLocation = InformationManager.Instance().getMainBaseLocation(InformationManager.Instance().enemyPlayer);
 		
 		Chokepoint firstChokePoint = BWTA.getNearestChokepoint(myBaseLocation.getTilePosition());
-		Boolean firstOverload = false;
-		
-		if(!firstOverload){
+
+		if (enemyBaseLocation == null) { 
 			for (Unit unit : MyBotModule.Broodwar.self().getUnits()) {
 				if (unit.getType() == UnitType.Zerg_Overlord) {
-						commandUtil.move(unit, firstChokePoint.getCenter());
-						firstOverload = true;
-						break;
+					commandUtil.move(unit, firstChokePoint.getCenter());
+					break;
 				}
 			}
-		}
-
-		if (enemyBaseLocation != null && firstOverload)
-		{
-			Chokepoint enemyChokePoint = BWTA.getNearestChokepoint(InformationManager.Instance().getMainBaseLocation(InformationManager.Instance().enemyPlayer).getTilePosition());
+		} else {
+			Chokepoint enemyChokePoint = BWTA.getNearestChokepoint(InformationManager.Instance()
+					.getMainBaseLocation(InformationManager.Instance().enemyPlayer).getTilePosition());
 			for (Unit unit : MyBotModule.Broodwar.self().getUnits()) {
-				if (unit.getType() == UnitType.Zerg_Overlord ) {
-						commandUtil.move(unit, enemyChokePoint.getCenter());
+				if (unit.getType() == UnitType.Zerg_Overlord) {
+					commandUtil.move(unit, enemyChokePoint.getCenter());
+					break;
 				}
 			}
 		}
