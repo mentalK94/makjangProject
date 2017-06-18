@@ -34,7 +34,8 @@ public class StrategyManager {
 
 	/// 경기가 시작될 때 일회적으로 전략 초기 세팅 관련 로직을 실행합니다
 	public void onStart() {
-		setInitialBuildOrder();		
+		//setInitialBuildOrder();
+		Zerg_4Drone();
 	}
 
 	///  경기가 종료될 때 일회적으로 전략 결과 정리 관련 로직을 실행합니다
@@ -654,8 +655,8 @@ public class StrategyManager {
 				}
 			}
 
-			// 전투 유닛이 2개 이상 생산되었고, 적군 위치가 파악되었으면 총공격 모드로 전환
-			if (MyBotModule.Broodwar.self().completedUnitCount(InformationManager.Instance().getBasicCombatUnitType()) > 2) {
+			// Zerg_Zergling 유닛이 3개 이상 생산되었고, 적군 위치가 파악되었으면 총공격 모드로 전환
+			if (MyBotModule.Broodwar.self().completedUnitCount(UnitType.Zerg_Zergling) % 3 == 0) {
 				if (InformationManager.Instance().enemyPlayer != null
 					&& InformationManager.Instance().enemyRace != Race.Unknown  
 					&& InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).size() > 0) {				
@@ -707,6 +708,34 @@ public class StrategyManager {
 					}
 				}
 			}
+		}
+	}
+	
+	public void Zerg_4Drone() {
+		
+		if (MyBotModule.Broodwar.self().getRace() == Race.Zerg) {
+			// 스포닝 풀 변태 
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Zerg_Spawning_Pool,
+					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+			
+			// 드론 1기
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
+
+			// 6저글링
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Zerg_Zergling);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Zerg_Zergling);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Zerg_Zergling);
+			
+			// 오버로드 생산
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getBasicSupplyProviderUnitType());
+			
+			// 추가저글링 생산
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Zerg_Zergling);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Zerg_Zergling);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Zerg_Zergling);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Zerg_Zergling);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Zerg_Zergling);
+			
 		}
 	}
 }
