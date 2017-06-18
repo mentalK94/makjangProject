@@ -165,13 +165,14 @@ public class ScoutManager {
 					
 				}
 				else {
-					//currentScoutStatus = ScoutStatus.MoveAroundEnemyBaseLocation.ordinal();
-					//currentScoutTargetPosition = getScoutFleePositionFromEnemyRegionVertices();
-					//commandUtil.move(currentScoutUnit, currentScoutTargetPosition);					
+				    // 적 본진 발견시 주변을 돌면서 계속 정찰
+					currentScoutStatus = ScoutStatus.MoveAroundEnemyBaseLocation.ordinal();
+					currentScoutTargetPosition = getScoutFleePositionFromEnemyRegionVertices();
+					commandUtil.move(currentScoutUnit, currentScoutTargetPosition);					
 					
-					WorkerManager.Instance().setIdleWorker(currentScoutUnit);
-					currentScoutStatus = ScoutStatus.NoScout.ordinal();
-					currentScoutTargetPosition = myBaseLocation.getPosition();
+					//WorkerManager.Instance().setIdleWorker(currentScoutUnit);
+					//currentScoutStatus = ScoutStatus.NoScout.ordinal();
+					//currentScoutTargetPosition = myBaseLocation.getPosition();
 				}
 			}
 		}
