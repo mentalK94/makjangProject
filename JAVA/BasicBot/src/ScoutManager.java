@@ -6,8 +6,10 @@ import bwapi.Color;
 import bwapi.Position;
 import bwapi.TilePosition;
 import bwapi.Unit;
+import bwapi.UnitType;
 import bwta.BWTA;
 import bwta.BaseLocation;
+import bwta.Chokepoint;
 import bwta.Region;
 
 /// 게임 초반에 일꾼 유닛 중에서 정찰 유닛을 하나 지정하고, 정찰 유닛을 이동시켜 정찰을 수행하는 class<br>
@@ -55,6 +57,7 @@ public class ScoutManager {
 	public void assignScoutIfNeeded()
 	{
 		BaseLocation enemyBaseLocation = InformationManager.Instance().getMainBaseLocation(MyBotModule.Broodwar.enemy());
+		BaseLocation myBaseLocation = InformationManager.Instance().getMainBaseLocation(MyBotModule.Broodwar.self());
 
 		if (enemyBaseLocation == null)
 		{
