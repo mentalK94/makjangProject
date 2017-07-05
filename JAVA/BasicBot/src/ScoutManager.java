@@ -77,7 +77,8 @@ public class ScoutManager {
 				if (firstBuilding != null)
 				{
 					// grab the closest worker to the first building to send to scout
-					Unit unit = WorkerManager.Instance().getClosestMineralWorkerTo(firstBuilding.getPosition());
+					// 2017-07-03
+					Unit unit = SwWorkerManager.Instance().getClosestMineralWorkerTo(firstBuilding.getPosition());
 
 					// if we find a worker (which we should) add it to the scout units
 					// 정찰 나갈 일꾼이 없으면, 아무것도 하지 않는다
