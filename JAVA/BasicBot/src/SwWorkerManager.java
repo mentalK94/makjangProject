@@ -1,8 +1,3 @@
-import com.basic.CommandUtil;
-import com.basic.MyBotModule;
-import com.basic.WorkerData;
-import com.basic.WorkerManager;
-
 import bwapi.Position;
 import bwapi.Unit;
 

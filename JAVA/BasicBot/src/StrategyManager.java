@@ -1,5 +1,3 @@
-package com.basic;
-
 import bwapi.Race;
 import bwapi.TechType;
 import bwapi.Unit;
