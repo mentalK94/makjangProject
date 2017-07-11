@@ -66,151 +66,177 @@ public class SwStrategyManager {
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType(),
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-			
 			// SupplyUsed가 8 일때 서플라이 빌드
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(
 					InformationManager.Instance().getBasicSupplyProviderUnitType(),
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType(),
+					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType(),
+					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+
 			
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType(),
-					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType(),
-					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
 			
 			// SupplyUsed가 10 일때 배럭 빌드
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Barracks,
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-			
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType(),
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-			
 			// SupplyUsed가 12 일때 가스 리파이너리 빌드
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getRefineryBuildingType());
-			
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType(),
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType(),
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+
+			
 			
 			// SupplyUsed가 15 일때 서플라이 빌드
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(
 					InformationManager.Instance().getBasicSupplyProviderUnitType(),
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-			
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType(),
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-			
-			
-			// SupplyUsed가 18 일때 팩토리
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Factory);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Machine_Shop);
-			
-			// 시즈탱크
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(TechType.Tank_Siege_Mode, false);
-			
-			// 애드온과 동시에 배럭 추가 빌드
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Barracks,
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
+					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
 
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType(),
-					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
-					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
-					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
-					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
-					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
 			
+						
+			// SupplyUsed가 20 일때 팩토리
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Factory);
+			//2017-07-10
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
+					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
+					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Siege_Tank_Tank_Mode, false);			
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Siege_Tank_Tank_Mode, false);
 			// SupplyUsed가 24 일때 서플라이 빌드
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(
 					InformationManager.Instance().getBasicSupplyProviderUnitType(),
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Machine_Shop);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(TechType.Tank_Siege_Mode, false);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
+					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+			
+			
+			
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
+					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);			
+			// 시즈탱크모드로 전환
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Siege_Tank_Siege_Mode, false);
+			// 애드온과 동시에 배럭 추가 빌드
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Barracks,
+					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType(),
+					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
+					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
+					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
+					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+			
+			
 			
 			// 아카데미 건설
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Academy);
-			
-			// 시즈탱크 시즈모드
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Siege_Tank_Tank_Mode);
-			
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Academy);			
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
+			// SupplyUsed가 31 일때 서플라이 빌드
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(
+					InformationManager.Instance().getBasicSupplyProviderUnitType(),
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Siege_Tank_Tank_Mode, false);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Siege_Tank_Tank_Mode, false);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Medic);
-			
-			// 시즈탱크
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(TechType.Tank_Siege_Mode, true);
-			
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
-					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+			
+			
+						
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Medic);
-
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Medic);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
+					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);		
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
+					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
+					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
 			// 마린 스팀팩
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(TechType.Stim_Packs, false);
+
 			
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Medic);
 			
-			// 시즈탱크
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(TechType.Tank_Siege_Mode, true);
 			
-			// SupplyUsed가 32 일때 서플라이 빌드
+			// SupplyUsed가 35 일때 서플라이 빌드
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(
 					InformationManager.Instance().getBasicSupplyProviderUnitType(),
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-			
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
-					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
-					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Medic);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
 			
-			// SupplyUsed가 40일때 서플라이 빌드
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(
-					InformationManager.Instance().getBasicSupplyProviderUnitType(),
-					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
 			
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
-					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
-					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
-					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
-					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+			// 마린 사정거리 업
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UpgradeType.U_238_Shells, false);
+			// 메딕
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(TechType.Optical_Flare, false);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(TechType.Restoration, false);
+			// 메딕 에너지 업
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UpgradeType.Caduceus_Reactor, false);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Medic);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
-					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-			
-			// SupplyUsed가 36일때 서플라이 빌드
+			// SupplyUsed가 43일때 서플라이 빌드
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(
 					InformationManager.Instance().getBasicSupplyProviderUnitType(),
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
+					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
+					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+			
+			
+			
+//			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
+//					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+//			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
+//					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+//			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Medic);
+//			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
+//					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+//			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
+//					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+//			
+//			
+//			
+//			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
+//					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+//			// SupplyUsed가 52일때 서플라이 빌드
+//			BuildManager.Instance().buildQueue.queueAsLowestPriority(
+//					InformationManager.Instance().getBasicSupplyProviderUnitType(),
+//					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
 			
 			/*
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Barracks,
@@ -231,16 +257,6 @@ public class SwStrategyManager {
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UpgradeType.Terran_Infantry_Armor, false);
 
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Missile_Turret);
-
-			
-			// 마린 사정거리 업
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UpgradeType.U_238_Shells, false);
-
-			// 메딕
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(TechType.Optical_Flare, false);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(TechType.Restoration, false);
-			// 메딕 에너지 업
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UpgradeType.Caduceus_Reactor, false);
 
 			
 			// 벌쳐 스파이더 마인
