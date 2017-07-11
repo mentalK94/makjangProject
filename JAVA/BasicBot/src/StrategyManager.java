@@ -17,8 +17,8 @@ public class StrategyManager {
 
 	private CommandUtil commandUtil = new CommandUtil();
 
-	private boolean isFullScaleAttackStarted;
-	private boolean isInitialBuildOrderFinished;
+	boolean isFullScaleAttackStarted;     // private -> public으로 변경 by NDH
+	boolean isInitialBuildOrderFinished;  // private -> public으로 변경 by NDH
 
 	/// static singleton 객체를 리턴합니다
 	public static StrategyManager Instance() {
@@ -50,7 +50,8 @@ public class StrategyManager {
 
 		executeSupplyManagement();
 
-		executeBasicCombatUnitTraining();
+//		executeBasicCombatUnitTraining();
+		NDHStrategyManager.Instance().executeBachanicUnitTraining(); // 바카닉 유닛 반복 생산 by NDH
 
 //		executeCombat();
 		SwStrategyManager.Instance().executeCombat();
