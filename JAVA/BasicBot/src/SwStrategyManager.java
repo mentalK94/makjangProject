@@ -517,7 +517,6 @@ public class SwStrategyManager {
 				if (unit.getType() == InformationManager.Instance().getBasicCombatUnitType() && unit.isIdle()){
 					commandUtil.attackMove(unit, targetPosition);
 					
-					
 				}else if(unit.getType() == InformationManager.Instance().getAdvancedCombatUnitType() && unit.isIdle()) {
 					commandUtil.attackMove(unit, targetPosition);
 				}else if(unit.getType() == UnitType.Terran_Siege_Tank_Tank_Mode){
