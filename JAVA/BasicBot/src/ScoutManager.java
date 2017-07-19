@@ -6,6 +6,7 @@ import bwapi.Color;
 import bwapi.Position;
 import bwapi.TilePosition;
 import bwapi.Unit;
+import bwapi.UnitType;
 import bwta.BWTA;
 import bwta.BaseLocation;
 import bwta.Region;
@@ -161,13 +162,16 @@ public class ScoutManager {
 					
 				}
 				else {
-					//currentScoutStatus = ScoutStatus.MoveAroundEnemyBaseLocation.ordinal();
-					//currentScoutTargetPosition = getScoutFleePositionFromEnemyRegionVertices();
-					//commandUtil.move(currentScoutUnit, currentScoutTargetPosition);					
+					currentScoutStatus = ScoutStatus.MoveAroundEnemyBaseLocation.ordinal();
+					currentScoutTargetPosition = getScoutFleePositionFromEnemyRegionVertices();
+					commandUtil.move(currentScoutUnit, currentScoutTargetPosition);					
 					
-					WorkerManager.Instance().setIdleWorker(currentScoutUnit);
-					currentScoutStatus = ScoutStatus.NoScout.ordinal();
-					currentScoutTargetPosition = myBaseLocation.getPosition();
+					if(currentScoutUnit.getHitPoints() < UnitType.Terran_SCV.maxHitPoints()*0.75){
+						System.out.println("Scout SCV is Under Attacked!!!");
+						WorkerManager.Instance().setIdleWorker(currentScoutUnit);
+						currentScoutStatus = ScoutStatus.NoScout.ordinal();
+						currentScoutTargetPosition = myBaseLocation.getPosition();
+					}
 				}
 			}
 		}
