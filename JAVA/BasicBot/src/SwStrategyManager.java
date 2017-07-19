@@ -1,3 +1,6 @@
+import javax.sound.midi.MidiDevice.Info;
+
+import bwapi.Position;
 import bwapi.Race;
 import bwapi.TechType;
 import bwapi.Unit;
@@ -19,6 +22,10 @@ public class SwStrategyManager {
 
 	private boolean isFullScaleAttackStarted;
 	private boolean isInitialBuildOrderFinished;
+
+	private UnitType basicDefenseBuildingType;
+
+	private Position bunkerPosition;
 
 	/// static singleton 객체를 리턴합니다
 	public static SwStrategyManager Instance() {
@@ -498,21 +505,33 @@ public class SwStrategyManager {
 			Chokepoint firstChokePoint = BWTA.getNearestChokepoint(InformationManager.Instance().getMainBaseLocation(InformationManager.Instance().selfPlayer).getTilePosition());
 			// 2017-07-04
 			Chokepoint secondChokePoint = InformationManager.Instance().getSecondChokePoint(InformationManager.Instance().selfPlayer);			
+			Position targetPosition = firstChokePoint.getPoint();
+			Unit bunker = null;
 			
 			for (Unit unit : MyBotModule.Broodwar.self().getUnits()) {
-				//2017-007-05
-				if ((unit.getType() == InformationManager.Instance().getBasicCombatUnitType() || 
-						unit.getType() == InformationManager.Instance().getAdvancedCombatUnitType())
-						&& unit.isIdle()) {
+				// 벙커의 위치를 저장
+				if (unit.getType() == UnitType.Terran_Bunker && unit.isCompleted()) {
+					targetPosition = unit.getPosition();
+				}
+				// 마린의 경우 벙커에 들어가있거나 주위에 있도록
+				if (unit.getType() == InformationManager.Instance().getBasicCombatUnitType() && unit.isIdle()){
+					commandUtil.attackMove(unit, targetPosition);
 					
+					
+				}else if(unit.getType() == InformationManager.Instance().getAdvancedCombatUnitType() && unit.isIdle()) {
+					commandUtil.attackMove(unit, targetPosition);
+				}else if(unit.getType() == UnitType.Terran_Siege_Tank_Tank_Mode){
 					commandUtil.attackMove(unit, firstChokePoint.getPoint());
+					if(unit.getPoint().getDistance(firstChokePoint) < 150){
+						unit.useTech(TechType.Tank_Siege_Mode);
+					}
 				}
 			}
 
 			// 전투 유닛이 15개 이상 생산되었고, 적군 위치가 파악되었으면 총공격 모드로 전환
 			//2017-07-05
 			if ((MyBotModule.Broodwar.self().completedUnitCount(InformationManager.Instance().getBasicCombatUnitType()) 
-					+ MyBotModule.Broodwar.self().completedUnitCount(InformationManager.Instance().getAdvancedCombatUnitType())) > 15) {
+					+ MyBotModule.Broodwar.self().completedUnitCount(InformationManager.Instance().getAdvancedCombatUnitType())) > 17) {
 				if (InformationManager.Instance().enemyPlayer != null
 					&& InformationManager.Instance().enemyRace != Race.Unknown  
 					&& InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).size() > 0) {				
@@ -558,13 +577,15 @@ public class SwStrategyManager {
 						if (unit.getType().isWorker()) {
 							continue;
 						}
-											
+						// 탱크 시즈모드 해제
+						if (unit.getType() == UnitType.Terran_Siege_Tank_Siege_Mode){
+							unit.unsiege();
+						}
 						if (unit.canAttack() || unit.canRepair()) {
 							if(unit.isIdle()){
-								
 								if(!isOkAttackBaseLocation){
 									commandUtil.attackMove(unit, secondChokePointEnemey.getPoint());
-									if(MyBotModule.Broodwar.getUnitsInRadius(secondChokePointEnemey.getPoint(), 250).size() > 11){
+									if(MyBotModule.Broodwar.getUnitsInRadius(secondChokePointEnemey.getPoint(), 250).size() > 9){
 										isOkAttackBaseLocation = true;
 										System.out.println("isOkAttackBaseLocation = true");
 									}else{
