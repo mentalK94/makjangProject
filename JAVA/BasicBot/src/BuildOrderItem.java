@@ -21,7 +21,10 @@ public class BuildOrderItem {
 		FirstChokePoint,			///< 아군 첫번째 길목
 		FirstExpansionLocation,		///< 아군 첫번째 앞마당
 		SecondChokePoint,			///< 아군 두번째 길목
-		SeedPositionSpecified		///< 별도 지정 위치
+		SeedPositionSpecified,		///< 별도 지정 위치
+		MainBaseFrontYard,			///< 아군 베이스  앞편
+		MainBaseFrontYardHalf,		///< 아군 베이스  앞편 거리절반
+		MainBaseFrontYardThird		///< 아군 베이스  앞편 삼분의일
 	};
 	
 	public SeedPositionStrategy seedLocationStrategy;	///< 건설위치 초안 결정 정책
