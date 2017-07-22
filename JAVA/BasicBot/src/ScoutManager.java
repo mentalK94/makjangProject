@@ -68,7 +68,7 @@ public class ScoutManager {
 
 				for (Unit unit : MyBotModule.Broodwar.self().getUnits())
 				{
-					if (unit.getType().isBuilding() == true && unit.getType().isResourceDepot() == false)
+					if (unit.getType() == UnitType.Terran_Factory && unit.getType().isBuilding() == true && unit.getType().isResourceDepot() == false)
 					{
 						firstBuilding = unit;
 						break;

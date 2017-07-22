@@ -530,7 +530,7 @@ public class SwStrategyManager {
 			// 전투 유닛이 15개 이상 생산되었고, 적군 위치가 파악되었으면 총공격 모드로 전환
 			//2017-07-05
 			if ((MyBotModule.Broodwar.self().completedUnitCount(InformationManager.Instance().getBasicCombatUnitType()) 
-					+ MyBotModule.Broodwar.self().completedUnitCount(InformationManager.Instance().getAdvancedCombatUnitType())) > 17) {
+					+ MyBotModule.Broodwar.self().completedUnitCount(InformationManager.Instance().getAdvancedCombatUnitType())) > 12) {
 				if (InformationManager.Instance().enemyPlayer != null
 					&& InformationManager.Instance().enemyRace != Race.Unknown  
 					&& InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).size() > 0) {				
@@ -584,7 +584,7 @@ public class SwStrategyManager {
 							if(unit.isIdle()){
 								if(!isOkAttackBaseLocation){
 									commandUtil.attackMove(unit, secondChokePointEnemey.getPoint());
-									if(MyBotModule.Broodwar.getUnitsInRadius(secondChokePointEnemey.getPoint(), 250).size() > 9){
+									if(MyBotModule.Broodwar.getUnitsInRadius(secondChokePointEnemey.getPoint(), 250).size() > 12){
 										isOkAttackBaseLocation = true;
 										System.out.println("isOkAttackBaseLocation = true");
 									}else{
