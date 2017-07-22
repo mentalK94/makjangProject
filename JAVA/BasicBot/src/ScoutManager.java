@@ -6,6 +6,7 @@ import bwapi.Color;
 import bwapi.Position;
 import bwapi.TilePosition;
 import bwapi.Unit;
+import bwapi.UnitType;
 import bwta.BWTA;
 import bwta.BaseLocation;
 import bwta.Region;
@@ -77,8 +78,9 @@ public class ScoutManager {
 				if (firstBuilding != null)
 				{
 					// grab the closest worker to the first building to send to scout
-					Unit unit = WorkerManager.Instance().getClosestMineralWorkerTo(firstBuilding.getPosition());
-
+//					Unit unit = WorkerManager.Instance().getClosestMineralWorkerTo(firstBuilding.getPosition());
+					Unit unit = SwWorkerManager.Instance().getClosestMineralWorkerTo(firstBuilding.getPosition());
+					
 					// if we find a worker (which we should) add it to the scout units
 					// 정찰 나갈 일꾼이 없으면, 아무것도 하지 않는다
 					if (unit != null)
@@ -160,13 +162,16 @@ public class ScoutManager {
 					
 				}
 				else {
-					//currentScoutStatus = ScoutStatus.MoveAroundEnemyBaseLocation.ordinal();
-					//currentScoutTargetPosition = getScoutFleePositionFromEnemyRegionVertices();
-					//commandUtil.move(currentScoutUnit, currentScoutTargetPosition);					
+					currentScoutStatus = ScoutStatus.MoveAroundEnemyBaseLocation.ordinal();
+					currentScoutTargetPosition = getScoutFleePositionFromEnemyRegionVertices();
+					commandUtil.move(currentScoutUnit, currentScoutTargetPosition);					
 					
-					WorkerManager.Instance().setIdleWorker(currentScoutUnit);
-					currentScoutStatus = ScoutStatus.NoScout.ordinal();
-					currentScoutTargetPosition = myBaseLocation.getPosition();
+					if(currentScoutUnit.getHitPoints() < UnitType.Terran_SCV.maxHitPoints()*0.75){
+						System.out.println("Scout SCV is Under Attacked!!!");
+						WorkerManager.Instance().setIdleWorker(currentScoutUnit);
+						currentScoutStatus = ScoutStatus.NoScout.ordinal();
+						currentScoutTargetPosition = myBaseLocation.getPosition();
+					}
 				}
 			}
 		}
