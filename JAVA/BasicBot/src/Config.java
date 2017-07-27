@@ -1,6 +1,8 @@
 import java.util.Set;
 
 import bwapi.Color;
+import bwapi.Race;
+import bwapi.Unit;
 import bwapi.UnitType;
 
 /// 봇 프로그램 설정
@@ -10,9 +12,9 @@ public class Config {
 	// 봇 이름 및 파일 경로 기본값 변경
 
 	/// 봇 이름
-	public static final String BotName = "NoNameBot";
+	public static final String BotName = "makjangBot";
 	/// 봇 개발자 이름
-	public static final String BotAuthors = "NoName";
+	public static final String BotAuthors = "NoBongWoo";
 	
 	
 	
@@ -108,5 +110,24 @@ public class Config {
 	public static final Color ColorUnitNearEnemy = Color.Red;
 	public static final Color ColorUnitNotNearEnemy = Color.Green;
 	
+	public static Race MY_RACE = null;
+    public static UnitType BASE = null;
+    public static UnitType WORKER = null;
+    public static UnitType BARRACKS = null;
+    public static UnitType SUPPLY = null;
+    public static UnitType GAS_BUILDING = null;
+    public static UnitType DEF_BUILDING_ANTI_LAND = null;
+    public static UnitType DEFENSIVE_BUILDING_ANTI_AIR = null;
 	
+	public static void useConfigForTerran(){
+		Config.MY_RACE = Race.Terran;
+		Config.BASE = UnitType.Terran_Command_Center;
+		Config.WORKER = UnitType.Terran_SCV;
+		Config.BARRACKS = UnitType.Terran_Barracks;
+		Config.SUPPLY = UnitType.Terran_Supply_Depot;
+		Config.GAS_BUILDING = UnitType.Terran_Refinery;
+		
+		Config.DEF_BUILDING_ANTI_LAND = UnitType.Terran_Bunker;
+		Config.DEFENSIVE_BUILDING_ANTI_AIR = UnitType.Terran_Missile_Turret;
+	}
 }

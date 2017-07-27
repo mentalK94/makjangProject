@@ -98,6 +98,9 @@ public class StrategyManager {
 
 //		executeCombat();
 		SwStrategyManager.Instance().executeCombat();
+		if(InformationManager.Instance().enemyRace != Race.Unknown){
+			SwStrategyManager.Instance().defineEnemyStrategy();
+		}
 		
 		// BasicBot 1.1 Patch Start ////////////////////////////////////////////////
 		// 경기 결과 파일 Save / Load 및 로그파일 Save 예제 추가
@@ -124,7 +127,7 @@ public class StrategyManager {
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
 //			//SupplyUsed가 11 일때 배럭
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Barracks,
-					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+					BuildOrderItem.SeedPositionStrategy.MainBaseFrontYardThird, true);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
 			// SupplyUsed가 12 일때 가스 리파이너리 빌드
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getRefineryBuildingType());
@@ -132,7 +135,7 @@ public class StrategyManager {
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine, false);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
 //			// SupplyUsed가 15 일때 팩토리 빌드
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Factory, BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Factory, BuildOrderItem.SeedPositionStrategy.MainBaseBackYard, true);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType(), false);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType(), false);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Machine_Shop, false);

@@ -503,22 +503,31 @@ public class SwStrategyManager {
 		// 공격 모드가 아닐 때에는 전투유닛들을 아군 진영 길목에 집결시켜서 방어
 		if (isFullScaleAttackStarted == false) {
 			Chokepoint firstChokePoint = BWTA.getNearestChokepoint(InformationManager.Instance().getMainBaseLocation(InformationManager.Instance().selfPlayer).getTilePosition());
-			// 2017-07-04
 			Chokepoint secondChokePoint = InformationManager.Instance().getSecondChokePoint(InformationManager.Instance().selfPlayer);			
 			Position targetPosition = firstChokePoint.getPoint();
 			Unit bunker = null;
+			Unit marine = null;
 			
 			for (Unit unit : MyBotModule.Broodwar.self().getUnits()) {
 				// 벙커의 위치를 저장
-				if (unit.getType() == UnitType.Terran_Bunker && unit.isCompleted()) {
-					targetPosition = unit.getPosition();
-				}
+//				if (unit.getType() == UnitType.Terran_Bunker && unit.isCompleted()) {
+//					targetPosition = unit.getPosition();
+//				}
 				// 마린의 경우 벙커에 들어가있거나 주위에 있도록
 				if (unit.getType() == InformationManager.Instance().getBasicCombatUnitType() && unit.isIdle()){
+					marine = unit;
 					commandUtil.attackMove(unit, targetPosition);
 					
+					if(unit.getPoint().getDistance(firstChokePoint) < 100){
+						targetPosition = unit.getPoint();
+						commandUtil.attackMove(unit, targetPosition);
+					}
+					
+				// 메딕의 경우 마린근처에 머물도록
 				}else if(unit.getType() == InformationManager.Instance().getAdvancedCombatUnitType() && unit.isIdle()) {
-					commandUtil.attackMove(unit, targetPosition);
+					commandUtil.rightClick(unit, marine);
+				
+				// 시즈탱크는 첫번째길목에서 시즈모드로 대기
 				}else if(unit.getType() == UnitType.Terran_Siege_Tank_Tank_Mode){
 					commandUtil.attackMove(unit, firstChokePoint.getPoint());
 					if(unit.getPoint().getDistance(firstChokePoint) < 150){
@@ -601,5 +610,51 @@ public class SwStrategyManager {
 				}
 			}
 		}
+	}
+
+	public void defineEnemyStrategy() {
+		if(MyBotModule.Broodwar.enemy().getRace() == Race.Terran){
+			defineEnemyStrategyWhenEnemyIsTerran();
+		}else if(MyBotModule.Broodwar.enemy().getRace() == Race.Protoss){
+			defineEnemyStrategyWhenEnemyIsProtoss();
+		}else if(MyBotModule.Broodwar.enemy().getRace() == Race.Zerg){
+			defineEnemyStrategyWhenEnemyIsZerg();
+		}
+	}
+
+	private void defineEnemyStrategyWhenEnemyIsZerg() {
+		System.out.println("defineEnemyStrategyWhenEnemyIsZerg start ");
+		SWEnemyStrategy detectedStrategy = SWEnemyZergStrategy.detectStrategy();
+		System.out.println("detectedStrategy : " + detectedStrategy);
+		if (detectedStrategy != null) {
+            changeEnemyStrategyTo(detectedStrategy);
+        } 
+	}
+
+	private void defineEnemyStrategyWhenEnemyIsProtoss() {
+		System.out.println("defineEnemyStrategyWhenEnemyIsProtoss start ");
+		SWEnemyStrategy detectedStrategy = SWEnemyProtossStrategy.detectStrategy();
+		System.out.println("detectedStrategy : " + detectedStrategy);
+		if (detectedStrategy != null) {
+            changeEnemyStrategyTo(detectedStrategy);
+        }
+	}
+
+	private void defineEnemyStrategyWhenEnemyIsTerran() {
+		System.out.println("defineEnemyStrategyWhenEnemyIsTerran start ");
+		SWEnemyStrategy detectedStrategy = SWEnemyTerranStrategy.detectStrategy();
+		System.out.println("detectedStrategy : " + detectedStrategy);
+		if (detectedStrategy != null) {
+            changeEnemyStrategyTo(detectedStrategy);
+        }
+	}
+
+	private void changeEnemyStrategyTo(SWEnemyStrategy strategy) {
+		if(!SWEnemyStrategy.isEnemyStrategyKwon()){
+			System.out.println("Enemy Strategy : " + strategy);
+		}
+		SWEnemyStrategy.setEnemyStrategy(strategy);
+		SWStrategyResponse.updateEnemyStrategyChanged();
+		
 	}
 }
