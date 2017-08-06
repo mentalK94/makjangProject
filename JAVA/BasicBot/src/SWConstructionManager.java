@@ -21,14 +21,14 @@ public class SWConstructionManager {
 		return instance;
 	}
 	
-	public static int countExistingAndPlannedConstructions(UnitType type) {
-        return SWSelect.ourOfType(type).count() + SWConstructionManager.countNotFinishedConstructionsOfType(type);
-    }
+//	public static int countExistingAndPlannedConstructions(UnitType type) {
+//        return SWSelect.ourOfType(type).count() + SWConstructionManager.countNotFinishedConstructionsOfType(type);
+//    }
 	
-	public static int countNotFinishedConstructionsOfType(UnitType type) {
-        return SWSelect.ourNotFinished().ofType(type).count()
-                + countNotStartedConstructionsOfType(type);
-    }
+//	public static int countNotFinishedConstructionsOfType(UnitType type) {
+//        return SWSelect.ourNotFinished().ofType(type).count()
+//                + countNotStartedConstructionsOfType(type);
+//    }
 	
 	private static int countNotStartedConstructionsOfType(UnitType type) {
 		int total = 0;
@@ -41,15 +41,15 @@ public class SWConstructionManager {
         return total;
 	}
 
-	public static int countExistingAndPlannedConstructionsInRadius(UnitType type, int radius, Position position) {
-		return MyBotModule.Broodwar.getUnitsInRadius(position, radius).size()
-				+ SWConstructionManager.countNotFinishedConstructionsOfTypeInRadius(type, radius, position);
-	}
+//	public static int countExistingAndPlannedConstructionsInRadius(UnitType type, int radius, Position position) {
+//		return MyBotModule.Broodwar.getUnitsInRadius(position, radius).size()
+//				+ SWConstructionManager.countNotFinishedConstructionsOfTypeInRadius(type, radius, position);
+//	}
 
-	private static int countNotFinishedConstructionsOfTypeInRadius(UnitType type, int radius, Position position) {
-		return SWSelect.ourNotFinished().ofType(type).inRadius(radius, position).count()
-				+ countNotStartedConstructionsOfTypeInRadius(type, radius, position);
-	}
+//	private static int countNotFinishedConstructionsOfTypeInRadius(UnitType type, int radius, Position position) {
+//		return SWSelect.ourNotFinished().ofType(type).inRadius(radius, position).count()
+//				+ countNotStartedConstructionsOfTypeInRadius(type, radius, position);
+//	}
 
 	public static int countNotStartedConstructionsOfTypeInRadius(UnitType type, double radius, Position position) {
         int total = 0;

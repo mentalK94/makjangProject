@@ -41,8 +41,8 @@ public class ScoutManager {
 	/// 정찰 유닛을 지정하고, 정찰 상태를 업데이트하고, 정찰 유닛을 이동시킵니다
 	public void update()
 	{
-		// 1초에 4번만 실행합니다
-		if (MyBotModule.Broodwar.getFrameCount() % 6 != 0) return;
+		// 2초에 1번만 실행합니다
+		if (MyBotModule.Broodwar.getFrameCount() % 48 != 0) return;
 		
 		// scoutUnit 을 지정하고, scoutUnit 의 이동을 컨트롤함. 
 		assignScoutIfNeeded();
@@ -68,7 +68,7 @@ public class ScoutManager {
 
 				for (Unit unit : MyBotModule.Broodwar.self().getUnits())
 				{
-					if (unit.getType() == UnitType.Terran_Factory && unit.getType().isBuilding() == true && unit.getType().isResourceDepot() == false)
+					if (unit.getType() == UnitType.Terran_Barracks && unit.getType().isBuilding() == true && unit.getType().isResourceDepot() == false)
 					{
 						firstBuilding = unit;
 						break;
@@ -166,7 +166,7 @@ public class ScoutManager {
 					currentScoutTargetPosition = getScoutFleePositionFromEnemyRegionVertices();
 					commandUtil.move(currentScoutUnit, currentScoutTargetPosition);					
 					
-					if(currentScoutUnit.getHitPoints() < UnitType.Terran_SCV.maxHitPoints()*0.75){
+					if(currentScoutUnit.getHitPoints() < UnitType.Terran_SCV.maxHitPoints()*0.9){
 						System.out.println("Scout SCV is Under Attacked!!!");
 						WorkerManager.Instance().setIdleWorker(currentScoutUnit);
 						currentScoutStatus = ScoutStatus.NoScout.ordinal();

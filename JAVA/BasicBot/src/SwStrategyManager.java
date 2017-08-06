@@ -1,8 +1,12 @@
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.sound.midi.MidiDevice.Info;
 
 import bwapi.Position;
 import bwapi.Race;
 import bwapi.TechType;
+import bwapi.TilePosition;
 import bwapi.Unit;
 import bwapi.UnitType;
 import bwapi.UpgradeType;
@@ -22,7 +26,10 @@ public class SwStrategyManager {
 
 	private boolean isFullScaleAttackStarted;
 	private boolean isInitialBuildOrderFinished;
-
+	private boolean isFirstExpasionFinished;
+	private boolean isAllBaseLocationVisited;
+	private int limitedSupplyUsed;
+	
 	private UnitType basicDefenseBuildingType;
 
 	private Position bunkerPosition;
@@ -35,6 +42,9 @@ public class SwStrategyManager {
 	public SwStrategyManager() {
 		isFullScaleAttackStarted = false;
 		isInitialBuildOrderFinished = false;
+		isFirstExpasionFinished = false;
+		isAllBaseLocationVisited = false;
+		limitedSupplyUsed = 200;
 	}
 
 	/// 경기가 시작될 때 일회적으로 전략 초기 세팅 관련 로직을 실행합니다
@@ -108,8 +118,8 @@ public class SwStrategyManager {
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType(),
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
-					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType(),
+					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);			
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
 					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
@@ -503,35 +513,49 @@ public class SwStrategyManager {
 		// 공격 모드가 아닐 때에는 전투유닛들을 아군 진영 길목에 집결시켜서 방어
 		if (isFullScaleAttackStarted == false) {
 			Chokepoint firstChokePoint = BWTA.getNearestChokepoint(InformationManager.Instance().getMainBaseLocation(InformationManager.Instance().selfPlayer).getTilePosition());
-			Chokepoint secondChokePoint = InformationManager.Instance().getSecondChokePoint(InformationManager.Instance().selfPlayer);			
-			Position targetPosition = firstChokePoint.getPoint();
+			Chokepoint secondChokePoint = InformationManager.Instance().getSecondChokePoint(InformationManager.Instance().selfPlayer);
+			BaseLocation baseLocation = InformationManager.Instance().getMainBaseLocation(MyBotModule.Broodwar.self());
+			Position tankPosition = null;
 			Unit bunker = null;
 			Unit marine = null;
+			Unit medic = null;
+			Unit tank = null;
+
+			tankPosition = findTankPosition(secondChokePoint, baseLocation);
 			
 			for (Unit unit : MyBotModule.Broodwar.self().getUnits()) {
+
 				// 벙커의 위치를 저장
-//				if (unit.getType() == UnitType.Terran_Bunker && unit.isCompleted()) {
-//					targetPosition = unit.getPosition();
-//				}
+				if (unit.getType() == UnitType.Terran_Bunker && unit.isCompleted()) {
+					bunker = unit;
+				}
 				// 마린의 경우 벙커에 들어가있거나 주위에 있도록
-				if (unit.getType() == InformationManager.Instance().getBasicCombatUnitType() && unit.isIdle()){
+				if (unit.getType() == UnitType.Terran_Marine && unit.isIdle()){
 					marine = unit;
-					commandUtil.attackMove(unit, targetPosition);
 					
-					if(unit.getPoint().getDistance(firstChokePoint) < 100){
-						targetPosition = unit.getPoint();
-						commandUtil.attackMove(unit, targetPosition);
+					if (bunker != null && bunker.getSpaceRemaining() != 0){
+						commandUtil.rightClick(marine, bunker);
+					}else {
+//						commandUtil.attackMove(marine, secondChokePoint.getPoint());
+						commandUtil.attackMove(marine, firstChokePoint.getPoint());
 					}
 					
 				// 메딕의 경우 마린근처에 머물도록
-				}else if(unit.getType() == InformationManager.Instance().getAdvancedCombatUnitType() && unit.isIdle()) {
-					commandUtil.rightClick(unit, marine);
-				
+				}else if(unit.getType() == UnitType.Terran_Medic && unit.isIdle()) {
+					medic = unit;
+					if(marine != null){
+						commandUtil.move(medic, marine.getPosition());
+					}else{
+						commandUtil.move(medic, firstChokePoint.getPoint());
+					}
+					
 				// 시즈탱크는 첫번째길목에서 시즈모드로 대기
 				}else if(unit.getType() == UnitType.Terran_Siege_Tank_Tank_Mode){
-					commandUtil.attackMove(unit, firstChokePoint.getPoint());
-					if(unit.getPoint().getDistance(firstChokePoint) < 150){
-						unit.useTech(TechType.Tank_Siege_Mode);
+					tank = unit;
+					commandUtil.attackMove(tank, tankPosition);
+					
+					if(tank.getPoint().getDistance(tankPosition) < 50){
+						tank.useTech(TechType.Tank_Siege_Mode);
 					}
 				}
 			}
@@ -612,49 +636,201 @@ public class SwStrategyManager {
 		}
 	}
 
-	public void defineEnemyStrategy() {
-		if(MyBotModule.Broodwar.enemy().getRace() == Race.Terran){
-			defineEnemyStrategyWhenEnemyIsTerran();
-		}else if(MyBotModule.Broodwar.enemy().getRace() == Race.Protoss){
-			defineEnemyStrategyWhenEnemyIsProtoss();
-		}else if(MyBotModule.Broodwar.enemy().getRace() == Race.Zerg){
-			defineEnemyStrategyWhenEnemyIsZerg();
+	private Position findTankPosition(Chokepoint secondChokePoint, BaseLocation mainBaseLocation) {
+		
+		int vx, vy;
+		double d, t;
+		int bx, by;
+		Position position;
+		
+		// 입구막는 위치
+//		vx = firstChokePoint.getCenter().getX() - secondChokePoint.getCenter().getX();
+//		vy = (firstChokePoint.getCenter().getY() - secondChokePoint.getCenter().getY()) * (-1);
+//		d = Math.sqrt(vx * vx + vy * vy) * 4; // BaseLocation 와 ChokePoint 간 거리보다 조금 짧은 거리로 조정. BaseLocation가 있는 Region은 대부분 직사각형 형태이기 때문
+//		t = Math.atan2(vy, vx + 0.0001); // 라디안 단위
+//		bx = firstChokePoint.getX() + (int)(d * Math.cos(t) / Config.TILE_SIZE);
+//		by = firstChokePoint.getY() - (int)(d * Math.sin(t) / Config.TILE_SIZE);
+		
+		vx = secondChokePoint.getCenter().getX() - mainBaseLocation.getPosition().getX();
+		vy = (secondChokePoint.getCenter().getY() - mainBaseLocation.getPosition().getY()) * (-1);
+		d = Math.sqrt(vx * vx + vy * vy) * 0.8; // BaseLocation 와 ChokePoint 간 거리보다 조금 짧은 거리로 조정. BaseLocation가 있는 Region은 대부분 직사각형 형태이기 때문
+		t = Math.atan2(vy, vx + 0.0001); // 라디안 단위
+
+		// BaseLocation 에서 ChokePoint 반대쪽 방향의 Back Yard : 데카르트 좌표계에서 (cos(t+180) = -cos(t), sin(t+180) = -sin(t))
+		bx = mainBaseLocation.getTilePosition().getX() - (int)(d * Math.cos(t) / Config.TILE_SIZE);
+		by = mainBaseLocation.getTilePosition().getY() + (int)(d * Math.sin(t) / Config.TILE_SIZE);
+		
+		position =  new Position(bx, by);
+		
+		return position;
+	}
+
+	// 상대방 히든유닛, 극초반러쉬, 공중유닛 전략 캐치해서 기본적인 대응까지
+	public void analysisEnemyStrategy() {
+		System.out.println("111111111111111111 analysisEnemyStrategy start : ");
+		
+		if(MyBotModule.Broodwar.enemy().getRace().equals(Race.Terran)){
+			System.out.println("22222222222222222 analysisEnemyStrategyT start ");
+			SWEnemyStrategy detectedStrategy = SWEnemyTerranStrategy.detectStrategy();
+			System.out.println("detectedStrategy : " + detectedStrategy);
+			if (detectedStrategy != null) {
+	            changeEnemyStrategyTo(detectedStrategy);
+	        }
+		}else if(MyBotModule.Broodwar.enemy().getRace().equals(Race.Protoss)){
+			System.out.println("222222222222222 analysisEnemyStrategyP start ");
+			SWEnemyStrategy detectedStrategy = SWEnemyProtossStrategy.detectStrategy();
+			System.out.println("detectedStrategy : " + detectedStrategy);
+			if (detectedStrategy != null) {
+	            changeEnemyStrategyTo(detectedStrategy);
+	        }
+		}else if(MyBotModule.Broodwar.enemy().getRace().equals(Race.Zerg)){
+			System.out.println("222222222222222 analysisEnemyStrategyZ start ");
+			SWEnemyStrategy detectedStrategy = SWEnemyZergStrategy.detectStrategy();
+			System.out.println("detectedStrategy : " + detectedStrategy);
+			if (detectedStrategy != null) {
+	            changeEnemyStrategyTo(detectedStrategy);
+	        }
 		}
 	}
 
-	private void defineEnemyStrategyWhenEnemyIsZerg() {
-		System.out.println("defineEnemyStrategyWhenEnemyIsZerg start ");
-		SWEnemyStrategy detectedStrategy = SWEnemyZergStrategy.detectStrategy();
-		System.out.println("detectedStrategy : " + detectedStrategy);
-		if (detectedStrategy != null) {
-            changeEnemyStrategyTo(detectedStrategy);
-        } 
-	}
-
-	private void defineEnemyStrategyWhenEnemyIsProtoss() {
-		System.out.println("defineEnemyStrategyWhenEnemyIsProtoss start ");
-		SWEnemyStrategy detectedStrategy = SWEnemyProtossStrategy.detectStrategy();
-		System.out.println("detectedStrategy : " + detectedStrategy);
-		if (detectedStrategy != null) {
-            changeEnemyStrategyTo(detectedStrategy);
-        }
-	}
-
-	private void defineEnemyStrategyWhenEnemyIsTerran() {
-		System.out.println("defineEnemyStrategyWhenEnemyIsTerran start ");
-		SWEnemyStrategy detectedStrategy = SWEnemyTerranStrategy.detectStrategy();
-		System.out.println("detectedStrategy : " + detectedStrategy);
-		if (detectedStrategy != null) {
-            changeEnemyStrategyTo(detectedStrategy);
-        }
-	}
-
 	private void changeEnemyStrategyTo(SWEnemyStrategy strategy) {
+		System.out.println("333333333333333333 changeEnemyStrategyTo start");
 		if(!SWEnemyStrategy.isEnemyStrategyKwon()){
 			System.out.println("Enemy Strategy : " + strategy);
 		}
 		SWEnemyStrategy.setEnemyStrategy(strategy);
 		SWStrategyResponse.updateEnemyStrategyChanged();
+	}
+
+	public void executeExpasionManagemnet() {
+		if (isInitialBuildOrderFinished == false) {
+			return;
+		}
+
+		// 5초에 한번만 실행
+		if (MyBotModule.Broodwar.getFrameCount() % 120 != 0) {
+			return;
+		}
 		
+		// 앞마당 확장
+		if (MyBotModule.Broodwar.self().minerals() >= 400 && MyBotModule.Broodwar.self().supplyUsed() < 390 &&
+				MyBotModule.Broodwar.self().supplyUsed() > 100 && !isFirstExpasionFinished) {
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(
+					UnitType.Terran_Command_Center, BuildOrderItem.SeedPositionStrategy.FirstExpansionLocation, true);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(
+					UnitType.Terran_Comsat_Station, BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(
+					UnitType.Terran_Refinery, BuildOrderItem.SeedPositionStrategy.FirstExpansionLocation, true);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(
+					UnitType.Terran_Comsat_Station, BuildOrderItem.SeedPositionStrategy.FirstExpansionLocation, true);
+			
+			executeDefendBase();
+			isFirstExpasionFinished = true;
+		}
+		
+		// 아무도 없는 지역이면 baseList에 담는다
+		// 추가확장 이전에 지도 전체 정찰 시작 
+		ArrayList<BaseLocation> baseList = SWScoutManager.Instance().allBaseLocationScout();
+		
+		// 전체 정찰완료 후 확장할곳 선택
+		if(isFirstExpasionFinished && isAllBaseLocationVisited){
+			
+			// 다른본진 확장
+			if(MyBotModule.Broodwar.self().minerals() >= 400 && MyBotModule.Broodwar.self().supplyUsed() < 390 &&
+					MyBotModule.Broodwar.self().supplyUsed() > limitedSupplyUsed){
+				
+				BaseLocation nextBaseLocation = baseList.get(0);
+				
+//				BuildManager.Instance().buildQueue.queueAsLowestPriority(
+//						UnitType.Terran_Command_Center, BuildOrderItem.SeedPositionStrategy.FirstExpansionLocation, true);
+//				BuildManager.Instance().buildQueue.queueAsLowestPriority(
+//						UnitType.Terran_Refinery, BuildOrderItem.SeedPositionStrategy.FirstExpansionLocation, true);
+//				BuildManager.Instance().buildQueue.queueAsLowestPriority(
+//						UnitType.Terran_Comsat_Station, BuildOrderItem.SeedPositionStrategy.FirstExpansionLocation, true);
+				
+				ConstructionManager.Instance().addConstructionTask(UnitType.Terran_Command_Center, nextBaseLocation.getTilePosition());
+				ConstructionManager.Instance().addConstructionTask(UnitType.Terran_Refinery, nextBaseLocation.getTilePosition());
+				ConstructionManager.Instance().addConstructionTask(UnitType.Terran_Comsat_Station, nextBaseLocation.getTilePosition());
+				
+				executeDefendBase();
+				
+				limitedSupplyUsed += 50;
+				isAllBaseLocationVisited = false;
+			}
+		}
+	}
+
+	// 본진 방어전략 
+	private void executeDefendBase() {
+		int requireParents = InformationManager.Instance().getNumUnits(UnitType.Terran_Engineering_Bay, MyBotModule.Broodwar.self());
+		if(requireParents == 0){
+			BuildManager.Instance().buildQueue.queueAsHighestPriority(UnitType.Terran_Engineering_Bay, true);
+		}
+		
+		int bunkerNumInbase = 0;
+		int turretNumInbase = 0;
+		// 벙커, 미사일터렛
+		for (BaseLocation base : InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().selfPlayer)) {
+			  List<Unit> units = MyBotModule.Broodwar.getUnitsInRadius(base.getPosition(), 8);	
+			  
+			  for(Unit u : units){
+				  if(u.getType() ==  UnitType.Terran_Bunker) bunkerNumInbase++;
+				  if(u.getType() ==  UnitType.Terran_Missile_Turret) turretNumInbase++;
+			  }			  
+	          
+	          for (int i = 0; i < 1 - bunkerNumInbase; i++) {
+	        	  ConstructionManager.Instance().addConstructionTask(UnitType.Terran_Bunker, base.getPosition().toTilePosition());
+	          }
+	          for (int i = 0; i < 3 - turretNumInbase; i++) {
+	        	  ConstructionManager.Instance().addConstructionTask(UnitType.Terran_Missile_Turret, base.getPosition().toTilePosition());
+	          }
+	   }
+	}
+	
+	// 종족별 중후반 전략실시
+
+	public void executeMidStrategy() {
+		
+		if (isInitialBuildOrderFinished == false) {
+			return;
+		}
+		
+		// 현재 기본적인 건설상황 배럭2 팩토리1
+		ArrayList<Unit> barrackList = new ArrayList<>(); // 중복 서치를 막기 위해 배럭 리스트를 첫 서치 때 보관 by SW
+		ArrayList<Unit> factoryList = new ArrayList<>(); // 중복 서치를 막기 위해 팩토리 리스트를 첫 서치 때 보관 by SW
+		ArrayList<Unit> starportList = new ArrayList<>(); // 중복 서치를 막기 위해  스타포트 리스트를 첫 서치 때 보관 by SW
+		for (Unit unit : MyBotModule.Broodwar.self().getUnits()) {
+			if (unit.getType() == UnitType.Terran_Factory) {
+				factoryList.add(unit);
+			}else if (unit.getType() == UnitType.Terran_Barracks) {
+				barrackList.add(unit);
+			}else if(unit.getType() == UnitType.Terran_Starport){
+				starportList.add(unit);
+			}
+		}
+		
+		int barracks = barrackList.size();
+		int factorys = factoryList.size();
+		int starports = starportList.size();
+		
+		// 종족별로 대량생산할 유닛선정 및 건물 건설
+		if(MyBotModule.Broodwar.enemy().getRace().equals(Race.Terran)){
+			// 탱크, 골리앗, 레이쓰
+			// 팩토리2, 스타포트1 추가
+			SWEnemyTerranStrategy.Instance().executeMidStrategy(factorys, starports);
+			
+		} else if(MyBotModule.Broodwar.enemy().getRace().equals(Race.Protoss)){
+			// 탱크, 골리앗
+			// 팩토리3 추가
+			SWEnemyProtossStrategy.Instance().executeMidStrategy(factorys);
+			
+		} else if(MyBotModule.Broodwar.enemy().getRace().equals(Race.Zerg)){
+			// 탱크, 마린, 메딕, 파이어뱃
+			// 팩토리1 배럭2 추가
+			SWEnemyZergStrategy.Instance().executeMidStrategy(factorys, barracks);
+		}
+		
+		// 생산된 유닛들의 랠리포인트 설정 및
+		// 공격지점 설정
 	}
 }

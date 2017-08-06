@@ -25,7 +25,7 @@ public class StrategyManager {
 
 	public boolean isFullScaleAttackStarted;    // private -> public 변경 by 노동환
 	public boolean isInitialBuildOrderFinished; // private -> public 변경 by 노동환
-		
+	
 	// BasicBot 1.1 Patch Start ////////////////////////////////////////////////
 	// 경기 결과 파일 Save / Load 및 로그파일 Save 예제 추가를 위한 변수 및 메소드 선언
 
@@ -98,9 +98,18 @@ public class StrategyManager {
 
 //		executeCombat();
 		SwStrategyManager.Instance().executeCombat();
-		if(InformationManager.Instance().enemyRace != Race.Unknown){
-			SwStrategyManager.Instance().defineEnemyStrategy();
+		
+		// 초기정찰시 종족별 특이사항 감지 및 대응
+		if(InformationManager.Instance().getMainBaseLocation(MyBotModule.Broodwar.enemy()) != null &&
+				ScoutManager.ScoutStatus.MoveAroundEnemyBaseLocation.ordinal() == ScoutManager.Instance().getScoutStatus()){
+			SwStrategyManager.Instance().analysisEnemyStrategy();
 		}
+		
+		// 확장전략
+		SwStrategyManager.Instance().executeExpasionManagemnet();
+		
+		// 종족별 중반전략
+		SwStrategyManager.Instance().executeMidStrategy();
 		
 		// BasicBot 1.1 Patch Start ////////////////////////////////////////////////
 		// 경기 결과 파일 Save / Load 및 로그파일 Save 예제 추가
@@ -136,6 +145,9 @@ public class StrategyManager {
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
 //			// SupplyUsed가 15 일때 팩토리 빌드
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Factory, BuildOrderItem.SeedPositionStrategy.MainBaseBackYard, true);
+			// 벙커짓기 임시 추가
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Bunker,
+					BuildOrderItem.SeedPositionStrategy.FirstChokePoint, true);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType(), false);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType(), false);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Machine_Shop, false);
@@ -642,7 +654,7 @@ public class StrategyManager {
 		// 따라서, 파일 로딩은 bwapi-data\read 폴더로부터 하시면 됩니다
 
 		// TODO : 파일명은 각자 봇 명에 맞게 수정하시기 바랍니다
-		String gameRecordFileName = "bwapi-data\\read\\NoNameBot_GameRecord.dat";
+		String gameRecordFileName = "bwapi-data\\read\\makjangBot_GameRecord.dat";
 		
 		BufferedReader br = null;
 		try {
@@ -689,7 +701,7 @@ public class StrategyManager {
 		// bwapi-data\write 폴더에 저장된 파일은 대회 서버가 다음 경기 때 bwapi-data\read 폴더로 옮겨놓습니다
 
 		// TODO : 파일명은 각자 봇 명에 맞게 수정하시기 바랍니다
-		String gameRecordFileName = "bwapi-data\\write\\NoNameBot_GameRecord.dat";
+		String gameRecordFileName = "bwapi-data\\write\\makjangBot_GameRecord.dat";
 
 		System.out.println("saveGameRecord to file: " + gameRecordFileName);
 
@@ -748,7 +760,7 @@ public class StrategyManager {
 		}
 
 		// TODO : 파일명은 각자 봇 명에 맞게 수정하시기 바랍니다
-		String gameLogFileName = "bwapi-data\\write\\NoNameBot_LastGameLog.dat";
+		String gameLogFileName = "bwapi-data\\write\\makjangBot_LastGameLog.dat";
 
 		String mapName = MyBotModule.Broodwar.mapFileName();
 		mapName = mapName.replace(' ', '_');

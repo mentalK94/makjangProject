@@ -98,46 +98,46 @@ public class SWSelect<T> {
         return count();
     }
     
-    public SWSelect<?> ofType(UnitType... types) {
-        Iterator<T> unitsIterator = data.iterator();
-        while (unitsIterator.hasNext()) {
-            Object unitOrData = unitsIterator.next();
-            boolean typeMatches = (unitOrData instanceof Unit ? typeMatches((Unit) unitOrData, types) : typeMatches((SWFoggedUnit) unitOrData, types));
-            if (!typeMatches) {
-                unitsIterator.remove();
-            }
-        }
-
-        return this;
-    }
+//    public SWSelect<?> ofType(UnitType... types) {
+//        Iterator<T> unitsIterator = data.iterator();
+//        while (unitsIterator.hasNext()) {
+//            Object unitOrData = unitsIterator.next();
+//            boolean typeMatches = (unitOrData instanceof Unit ? typeMatches((Unit) unitOrData, types) : typeMatches((SWFoggedUnit) unitOrData, types));
+//            if (!typeMatches) {
+//                unitsIterator.remove();
+//            }
+//        }
+//
+//        return this;
+//    }
     
-    private boolean typeMatches(Unit needle, UnitType... haystack) {
-        Unit unit = unitFrom(needle);
-
-        for (UnitType type : haystack) {
-            if (unit.getType().equals(type)
-                    || (unit.getType().equals(UnitType.Zerg_Egg) && unit.getBuildType().equals(type))) {
-                return true;
-            }
-        }
-        return false;
-    }
+//    private boolean typeMatches(Unit needle, UnitType... haystack) {
+//        Unit unit = unitFrom(needle);
+//
+//        for (UnitType type : haystack) {
+//            if (unit.getType().equals(type)
+//                    || (unit.getType().equals(UnitType.Zerg_Egg) && unit.getBuildType().equals(type))) {
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
     
-    private boolean typeMatches(SWFoggedUnit needle, UnitType... haystack) {
-        Unit unit = unitFrom(needle);
-
-        for (UnitType type : haystack) {
-            if (needle.getType().equals(type)
-                    || (needle.getType().equals(UnitType.Zerg_Egg) && needle.getUnitType().equals(type))) {
-                return true;
-            }
-        }
-        return false;
-    }
+//    private boolean typeMatches(SWFoggedUnit needle, UnitType... haystack) {
+//        Unit unit = unitFrom(needle);
+//
+//        for (UnitType type : haystack) {
+//            if (needle.getType().equals(type)
+//                    || (needle.getType().equals(UnitType.Zerg_Egg) && needle.getUnitType().equals(type))) {
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
 	
-    private Unit unitFrom(Object unitOrData) {
-        return (unitOrData instanceof Unit ? (Unit) unitOrData : ((SWFoggedUnit) unitOrData).getUnit());
-    }
+//    private Unit unitFrom(Object unitOrData) {
+//        return (unitOrData instanceof Unit ? (Unit) unitOrData : ((SWFoggedUnit) unitOrData).getUnit());
+//    }
     
     public Unit first() {
         return data.isEmpty() ? null : (Unit) data.get(0);
@@ -194,57 +194,57 @@ public class SWSelect<T> {
         return this;
     }
 
-	public Unit nearestTo(Object positionOrUnit) {
-		if (data.isEmpty() || positionOrUnit == null) {
-            return null;
-        }
+//	public Unit nearestTo(Object positionOrUnit) {
+//		if (data.isEmpty() || positionOrUnit == null) {
+//            return null;
+//        }
+//
+//        Position position;
+//        if (positionOrUnit instanceof Position) {
+//            position = (Position) positionOrUnit;
+//        } else if (positionOrUnit instanceof Position) {
+//            position = (Position) positionOrUnit;
+//        } else {
+//            position = ((Unit) positionOrUnit).getPosition();
+//        }
+//
+//        sortDataByDistanceTo(position, true);
+//        return (Unit) data.get(0);
+//	}
 
-        Position position;
-        if (positionOrUnit instanceof Position) {
-            position = (Position) positionOrUnit;
-        } else if (positionOrUnit instanceof Position) {
-            position = (Position) positionOrUnit;
-        } else {
-            position = ((Unit) positionOrUnit).getPosition();
-        }
-
-        sortDataByDistanceTo(position, true);
-        return (Unit) data.get(0);
-	}
-
-	private List<T> sortDataByDistanceTo(final Position position, final boolean nearestFirst) {
-		if(position == null){
-			return null;
-		}
-		
-		Collections.sort(data, new Comparator<T>() {
-
-			@Override
-			public int compare(T o1, T o2) {
-				if(o1== null || !(o1 instanceof PositionedObject)){
-					return -1;
-				}
-				if(o2== null || !(o2 instanceof PositionedObject)){
-					return 1;
-				}
-
-				SWFoggedUnit data1 = dataFrom(o1);
-				SWFoggedUnit data2 = dataFrom(o2);
-				double distance1 = position.getDistance(data1.getPosition());
-				double distance2 = position.getDistance(data2.getPosition());
-				
-				if(distance1 == distance2){
-					return 0;
-				}else {
-					return distance1 < distance2 ? (nearestFirst ? -1 : 1) : (nearestFirst ? 1 : -1);
-				}
-			}
-		});
-		return data;
-	}
+//	private List<T> sortDataByDistanceTo(final Position position, final boolean nearestFirst) {
+//		if(position == null){
+//			return null;
+//		}
+//		
+//		Collections.sort(data, new Comparator<T>() {
+//
+//			@Override
+//			public int compare(T o1, T o2) {
+//				if(o1== null || !(o1 instanceof PositionedObject)){
+//					return -1;
+//				}
+//				if(o2== null || !(o2 instanceof PositionedObject)){
+//					return 1;
+//				}
+//
+//				SWFoggedUnit data1 = dataFrom(o1);
+//				SWFoggedUnit data2 = dataFrom(o2);
+//				double distance1 = position.getDistance(data1.getPosition());
+//				double distance2 = position.getDistance(data2.getPosition());
+//				
+//				if(distance1 == distance2){
+//					return 0;
+//				}else {
+//					return distance1 < distance2 ? (nearestFirst ? -1 : 1) : (nearestFirst ? 1 : -1);
+//				}
+//			}
+//		});
+//		return data;
+//	}
 	
-	private SWFoggedUnit dataFrom(Object unitOrData) {
-        return (unitOrData instanceof SWFoggedUnit ? (SWFoggedUnit) unitOrData : new SWFoggedUnit((Unit) unitOrData));
-    }
+//	private SWFoggedUnit dataFrom(Object unitOrData) {
+//        return (unitOrData instanceof SWFoggedUnit ? (SWFoggedUnit) unitOrData : new SWFoggedUnit((Unit) unitOrData));
+//    }
 
 }

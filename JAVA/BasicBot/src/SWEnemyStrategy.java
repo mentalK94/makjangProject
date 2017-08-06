@@ -20,9 +20,17 @@ public class SWEnemyStrategy {
     private boolean goingAirUnitsQuickly = false;
     private boolean goingAirUnitsLate = false;
 	
+    private static SWEnemyStrategy instance = new SWEnemyStrategy();
+    
+    /// static singleton 객체를 리턴합니다
+    public static SWEnemyStrategy Instance() {
+    	return instance;
+    }
+    
     protected SWEnemyStrategy() {
         allStrategies.add(this);
     }
+    
     
 	public static boolean isEnemyStrategyKwon() {
 		return enemyStrategy != null;
