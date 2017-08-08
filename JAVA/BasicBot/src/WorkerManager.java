@@ -122,11 +122,13 @@ public class WorkerManager {
 		for (Unit worker : workerData.getWorkers())
 		{
 			if (worker == null) continue;
-
+			if(StrategyManager.Instance().idleProbe != null && worker.getID() == StrategyManager.Instance().idleProbe.getID()){
+				continue;
+			}
+			
 			// if worker's job is idle 
 			if (workerData.getWorkerJob(worker) == WorkerData.WorkerJob.Idle || workerData.getWorkerJob(worker) == WorkerData.WorkerJob.Default )
 			{
-				// send it to the nearest mineral patch
 				setMineralWorker(worker);
 			}
 		}

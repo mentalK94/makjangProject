@@ -876,7 +876,8 @@ public class UXManager {
 	public void drawUnitIdOnMap() {
 		for (Unit unit : MyBotModule.Broodwar.self().getUnits())
 		{
-			MyBotModule.Broodwar.drawTextMap(unit.getPosition().getX(), unit.getPosition().getY() + 5, "" + white + unit.getID());
+//			MyBotModule.Broodwar.drawTextMap(unit.getPosition().getX(), unit.getPosition().getY() + 5, "" + white + unit.getID());
+			MyBotModule.Broodwar.drawTextMap(unit.getPosition().getX(), unit.getPosition().getY() + 5, "" + white + unit.getPosition());
 		}
 		for (Unit unit : MyBotModule.Broodwar.enemy().getUnits())
 		{

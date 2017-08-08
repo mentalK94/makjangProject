@@ -4,8 +4,10 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
+import bwapi.Position;
 import bwapi.Race;
 import bwapi.TechType;
+import bwapi.TilePosition;
 import bwapi.Unit;
 import bwapi.UnitType;
 import bwapi.UpgradeType;
@@ -23,9 +25,9 @@ public class StrategyManager {
 
 	private CommandUtil commandUtil = new CommandUtil();
 
-	public boolean isFullScaleAttackStarted;    // private -> public 변경 by 노동환
+	public boolean isFullScaleAttackStarted; // private -> public 변경 by 노동환
 	public boolean isInitialBuildOrderFinished; // private -> public 변경 by 노동환
-	
+
 	// BasicBot 1.1 Patch Start ////////////////////////////////////////////////
 	// 경기 결과 파일 Save / Load 및 로그파일 Save 예제 추가를 위한 변수 및 메소드 선언
 
@@ -59,353 +61,127 @@ public class StrategyManager {
 
 	/// 경기가 시작될 때 일회적으로 전략 초기 세팅 관련 로직을 실행합니다
 	public void onStart() {
-		
-		// BasicBot 1.1 Patch Start ////////////////////////////////////////////////
+
+		// BasicBot 1.1 Patch Start
+		// ////////////////////////////////////////////////
 		// 경기 결과 파일 Save / Load 및 로그파일 Save 예제 추가
-		
+
 		// 과거 게임 기록을 로딩합니다
 		loadGameRecordList();
 
-		// BasicBot 1.1 Patch End //////////////////////////////////////////////////
+		// BasicBot 1.1 Patch End
+		// //////////////////////////////////////////////////
 
-		setInitialBuildOrder();
+		//setInitialBuildOrder();
+		
+		for(Unit u : MyBotModule.Broodwar.self().getUnits()){
+			if(u.getType() == UnitType.Protoss_Nexus)
+				nexus = u;
+		}
 	}
 
-	///  경기가 종료될 때 일회적으로 전략 결과 정리 관련 로직을 실행합니다
+	Unit nexus = null;
+	public Unit idleProbe = null;
+	/// 경기가 종료될 때 일회적으로 전략 결과 정리 관련 로직을 실행합니다
 	public void onEnd(boolean isWinner) {
-		
-		// BasicBot 1.1 Patch Start ////////////////////////////////////////////////
+
+		// BasicBot 1.1 Patch Start
+		// ////////////////////////////////////////////////
 		// 경기 결과 파일 Save / Load 및 로그파일 Save 예제 추가
-		
+
 		// 과거 게임 기록 + 이번 게임 기록을 저장합니다
 		saveGameRecordList(isWinner);
-		
-		// BasicBot 1.1 Patch End //////////////////////////////////////////////////		
-	}
 
+		// BasicBot 1.1 Patch End
+		// //////////////////////////////////////////////////
+	}
+	boolean isFirstPylon = false;
 	/// 경기 진행 중 매 프레임마다 경기 전략 관련 로직을 실행합니다
 	public void update() {
-		if (BuildManager.Instance().buildQueue.isEmpty()) {
-			isInitialBuildOrderFinished = true;
+		
+		if(MyBotModule.Broodwar.self().supplyUsed() == 8){
+			nexus.build(UnitType.Protoss_Probe);
 		}
-
-		executeWorkerTraining();
-
-		executeSupplyManagement();
-
-		//executeBasicCombatUnitTraining();
-		NDHStrategyManager.Instance().executeBachanicUnitTraining(); // 바카닉 유닛 트레이닝 하도록 수정 by 노동환
-
-//		executeCombat();
-		SwStrategyManager.Instance().executeCombat();
+		if(MyBotModule.Broodwar.self().supplyUsed() == 10 && nexus.isIdle() && MyBotModule.Broodwar.self().minerals() >= 50){
+			nexus.build(UnitType.Protoss_Probe);
+		}
+		if(MyBotModule.Broodwar.self().supplyUsed() == 12 && nexus.isIdle() && MyBotModule.Broodwar.self().minerals() >= 50){
+			nexus.build(UnitType.Protoss_Probe);
+			for(Unit u : MyBotModule.Broodwar.self().getUnits()){
+				if(u.getType() == UnitType.Protoss_Probe && u.isCompleted()){
+					commandUtil.move(u, new Position(2036, 2058));
+					idleProbe = u;
+					break;
+				}
+			}
+		}
+		if(MyBotModule.Broodwar.self().supplyUsed() == 14 && MyBotModule.Broodwar.self().minerals() >= 100){
+			nexus.build(UnitType.Protoss_Probe);
+			for(Unit u : MyBotModule.Broodwar.self().getUnits()){
+				if(!isFirstPylon && u.getType() == UnitType.Protoss_Probe && u.isCompleted()){
+					ConstructionManager.Instance().addConstructionTask(UnitType.Protoss_Pylon, new TilePosition(64, 64));
+					isFirstPylon = true;
+				}
+			}
+		}
 		
+		isInitialBuildOrderFinished = false;
+		if(isInitialBuildOrderFinished){
+			executeWorkerTraining();
+			
+			executeSupplyManagement();
+			
+			executeBasicCombatUnitTraining();
+			
+			executeCombat();
+			
+		}
+		// SwStrategyManager.Instance().executeCombat();
+
 		// 초기정찰시 종족별 특이사항 감지 및 대응
-//		if(InformationManager.Instance().getMainBaseLocation(MyBotModule.Broodwar.enemy()) != null &&
-//				ScoutManager.ScoutStatus.MoveAroundEnemyBaseLocation.ordinal() == ScoutManager.Instance().getScoutStatus()){
-//			SwStrategyManager.Instance().analysisEnemyStrategy();
-//		}
-//		
-//		// 확장전략
-//		SwStrategyManager.Instance().executeExpasionManagemnet();
-//		
-//		// 종족별 중반전략
-//		SwStrategyManager.Instance().executeMidStrategy();
-		
-		// BasicBot 1.1 Patch Start ////////////////////////////////////////////////
+		// if(InformationManager.Instance().getMainBaseLocation(MyBotModule.Broodwar.enemy())
+		// != null &&
+		// ScoutManager.ScoutStatus.MoveAroundEnemyBaseLocation.ordinal() ==
+		// ScoutManager.Instance().getScoutStatus()){
+		// SwStrategyManager.Instance().analysisEnemyStrategy();
+		// }
+		//
+		// // 확장전략
+		// SwStrategyManager.Instance().executeExpasionManagemnet();
+		//
+		// // 종족별 중반전략
+		// SwStrategyManager.Instance().executeMidStrategy();
+
+		// BasicBot 1.1 Patch Start
+		// ////////////////////////////////////////////////
 		// 경기 결과 파일 Save / Load 및 로그파일 Save 예제 추가
 
 		// 이번 게임의 로그를 남깁니다
 		saveGameLog();
-		
-		// BasicBot 1.1 Patch End //////////////////////////////////////////////////
+
+		// BasicBot 1.1 Patch End
+		// //////////////////////////////////////////////////
 	}
 
 	public void setInitialBuildOrder() {
-		if (MyBotModule.Broodwar.self().getRace() == Race.Terran) {
-			
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
-			// SupplyUsed가 9일때 서플라이 빌드
-						BuildManager.Instance().buildQueue.queueAsLowestPriority(
-								InformationManager.Instance().getBasicSupplyProviderUnitType(),
-								BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());			
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
-//			//SupplyUsed가 11 일때 배럭
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Barracks,
-					BuildOrderItem.SeedPositionStrategy.MainBaseFrontYardThird, true);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
-			// SupplyUsed가 12 일때 가스 리파이너리 빌드
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getRefineryBuildingType());
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine, false);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine, false);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
-//			// SupplyUsed가 15 일때 팩토리 빌드
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Factory, BuildOrderItem.SeedPositionStrategy.MainBaseBackYard, true);
-			// 벙커짓기 임시 추가
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Bunker,
-					BuildOrderItem.SeedPositionStrategy.MainBaseFrontYard, true);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType(), false);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType(), false);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Machine_Shop, false);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
-			// SupplyUsed가 16 일때 서플라이 빌드
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(
-					InformationManager.Instance().getBasicSupplyProviderUnitType(),
-					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType(), false);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType(), false);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType(), false);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Siege_Tank_Tank_Mode, true);
-			// SupplyUsed가 23 일때 서플라이 빌드
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(
-					InformationManager.Instance().getBasicSupplyProviderUnitType(),
-					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine);
-			
-//			//SupplyUsed가 25 일때 배럭
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Barracks,
-					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
-			//SupplyUsed가 27 아카데미 건설
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Academy, true);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Siege_Tank_Tank_Mode, true);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(TechType.Tank_Siege_Mode, true);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
-			//SupplyUsed가 30 일때 서플라이 빌드
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(
-					InformationManager.Instance().getBasicSupplyProviderUnitType(),
-					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
-			//SupplyUsed가 35 일때 마린 스팀팩
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UpgradeType.U_238_Shells, true);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Medic);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Medic);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Siege_Tank_Tank_Mode, true);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(TechType.Stim_Packs, false);
-			
-			
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
-//					// SupplyUsed가 8 일때 서플라이 빌드
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(
-//							InformationManager.Instance().getBasicSupplyProviderUnitType(),
-//							BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
-//		
-//					
-//					
-//					// SupplyUsed가 10 일때 배럭 빌드
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Barracks,
-//							BuildOrderItem.SeedPositionStrategy.MainBaseFrontYardThird, true);
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine);
-//					// SupplyUsed가 12 일때 가스 리파이너리 빌드
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getRefineryBuildingType());
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine);
-//					// 벙커 짓기 추가
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Bunker,
-//							BuildOrderItem.SeedPositionStrategy.MainBaseFrontYardThird, true);
-//					
-//					
-//					// SupplyUsed가 15 일때 서플라이 빌드
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(
-//							InformationManager.Instance().getBasicSupplyProviderUnitType(),
-//							BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine);
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine);
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine);
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine);
-//		
-//					
-//								
-//					// SupplyUsed가 20 일때 팩토리
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Factory, BuildOrderItem.SeedPositionStrategy.MainBaseBackYard, true);
-//					//2017-07-10
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine);
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine);
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Siege_Tank_Tank_Mode, false);			
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Siege_Tank_Tank_Mode, false);
-//					// SupplyUsed가 24 일때 서플라이 빌드
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(
-//							InformationManager.Instance().getBasicSupplyProviderUnitType(),
-//							BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Machine_Shop);
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(TechType.Tank_Siege_Mode, false);
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine);
-//					
-//					
-//					
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine);
-//					// 애드온과 동시에 배럭 추가 빌드
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Barracks,
-//							BuildOrderItem.SeedPositionStrategy.MainBaseFrontYard, true);
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType());
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine);
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine);
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine);
-//					
-//					
-//					
-//					// 아카데미 건설
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Academy);
-//					// 스캔추가 설치
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Comsat_Station);
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Medic);
-//					// SupplyUsed가 31 일때 서플라이 빌드
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(
-//							InformationManager.Instance().getBasicSupplyProviderUnitType(),
-//							BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Siege_Tank_Tank_Mode, false);
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Siege_Tank_Tank_Mode, false);
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Medic);
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Medic);
-//					
-//					// 마린 스팀팩
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(TechType.Stim_Packs, false);
-//					// 마린 사정거리 업
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UpgradeType.U_238_Shells, false);
-					// 메딕
-		//			BuildManager.Instance().buildQueue.queueAsLowestPriority(TechType.Optical_Flare, false);
-		//			BuildManager.Instance().buildQueue.queueAsLowestPriority(TechType.Restoration, false);
-					// 메딕 에너지 업
-		//			BuildManager.Instance().buildQueue.queueAsLowestPriority(UpgradeType.Caduceus_Reactor, false);
-//					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Command_Center, BuildOrderItem.SeedPositionStrategy.FirstExpansionLocation);
-					
-		//			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
-		//					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-		//			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
-		//					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-		//			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Medic);
-		//			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
-		//					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-		//			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
-		//					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-		//			
-		//			
-		//			
-		//			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine,
-		//					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-		//			// SupplyUsed가 52일때 서플라이 빌드
-		//			BuildManager.Instance().buildQueue.queueAsLowestPriority(
-		//					InformationManager.Instance().getBasicSupplyProviderUnitType(),
-		//					BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
-					
-					/*
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Barracks,
-							BuildOrderItem.SeedPositionStrategy.MainBaseLocation);
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Bunker,
-							BuildOrderItem.SeedPositionStrategy.MainBaseLocation, false);
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Marine);
-		
-					
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Comsat_Station);
-		
-					
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Firebat);
-		
-					// 지상유닛 업그레이드
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Engineering_Bay);
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UpgradeType.Terran_Infantry_Weapons, false);
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UpgradeType.Terran_Infantry_Armor, false);
-		
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Missile_Turret);
-		
-					
-					// 벌쳐 스파이더 마인
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(TechType.Spider_Mines, false);
-					// 벌쳐 이동속도 업
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UpgradeType.Ion_Thrusters, false);
-					
-		
-					// 벌쳐
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Vulture);
-		
-					// 시즈탱크
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(TechType.Tank_Siege_Mode, false);
-		
-					// 아머니
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Armory);
-					// 지상 메카닉 유닛 업그레이드
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UpgradeType.Terran_Vehicle_Plating, false);
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UpgradeType.Terran_Vehicle_Weapons, false);
-					// 공중 유닛 업그레이드
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UpgradeType.Terran_Ship_Plating, false);
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UpgradeType.Terran_Ship_Weapons, false);
-					// 골리앗 사정거리 업
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UpgradeType.Charon_Boosters, false);
-		
-					// 골리앗
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Goliath);
-		
-					// 스타포트
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Starport);
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Control_Tower);
-					// 레이쓰 클러킹
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(TechType.Cloaking_Field, false);
-					// 레이쓰 에너지 업
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UpgradeType.Apollo_Reactor, false);
-		
-					// 레이쓰
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Wraith);
-		
-					// 발키리
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Valkyrie);
-		
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Command_Center);
-		
-					// 사이언스 퍼실리티
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Science_Facility);
-					// 사이언스 베슬 - 기술
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(TechType.Irradiate, false);
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(TechType.EMP_Shockwave, false);
-					// 사이언스 베슬 에너지 업
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UpgradeType.Titan_Reactor, false);
-		
-					// 사이언스 베슬
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Science_Vessel);
-					// 사이언스 퍼실리티 - 배틀크루저 생산 가능
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Physics_Lab);
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(TechType.Yamato_Gun, false);
-					// 배틀크루저 에너지 업
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UpgradeType.Colossus_Reactor, false);
-					// 배틀크루저
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Battlecruiser);
-		
-					// 사이언스 퍼실리티 - 고스트 생산 가능
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Science_Facility);
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Covert_Ops);
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(TechType.Lockdown, false);
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(TechType.Personnel_Cloaking, false);
-					// 고스트 가시거리 업
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UpgradeType.Ocular_Implants, false);
-					// 고스트 에너지 업
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UpgradeType.Moebius_Reactor, false);
-		
-					// 고스트
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Ghost);
-		
-					// 핵폭탄
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Command_Center);
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Nuclear_Silo);
-					BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Nuclear_Missile);
-					*/
-				}
+		// 프로브 : 4
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe);
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe);
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe);
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe);
+
+		// 프로브 : 8
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Pylon);
+
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe);
+
+		// 프로브 : 9
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway);
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway);
+
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe);
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe);
+
 	}
 
 	// 일꾼 계속 추가 생산
@@ -465,19 +241,25 @@ public class StrategyManager {
 	// SupplyProvider를 추가 건설/생산한다
 	public void executeSupplyManagement() {
 
-		// BasicBot 1.1 Patch Start ////////////////////////////////////////////////
+		// BasicBot 1.1 Patch Start
+		// ////////////////////////////////////////////////
 		// 가이드 추가 및 콘솔 출력 명령 주석 처리
 
-		// InitialBuildOrder 진행중 혹은 그후라도 서플라이 건물이 파괴되어 데드락이 발생할 수 있는데, 이 상황에 대한 해결은 참가자께서 해주셔야 합니다.
-		// 오버로드가 학살당하거나, 서플라이 건물이 집중 파괴되는 상황에 대해  무조건적으로 서플라이 빌드 추가를 실행하기 보다 먼저 전략적 대책 판단이 필요할 것입니다
+		// InitialBuildOrder 진행중 혹은 그후라도 서플라이 건물이 파괴되어 데드락이 발생할 수 있는데, 이 상황에 대한
+		// 해결은 참가자께서 해주셔야 합니다.
+		// 오버로드가 학살당하거나, 서플라이 건물이 집중 파괴되는 상황에 대해 무조건적으로 서플라이 빌드 추가를 실행하기 보다 먼저
+		// 전략적 대책 판단이 필요할 것입니다
 
-		// BWAPI::Broodwar->self()->supplyUsed() > BWAPI::Broodwar->self()->supplyTotal()  인 상황이거나
-		// BWAPI::Broodwar->self()->supplyUsed() + 빌드매니저 최상단 훈련 대상 유닛의 unit->getType().supplyRequired() > BWAPI::Broodwar->self()->supplyTotal() 인 경우
+		// BWAPI::Broodwar->self()->supplyUsed() >
+		// BWAPI::Broodwar->self()->supplyTotal() 인 상황이거나
+		// BWAPI::Broodwar->self()->supplyUsed() + 빌드매니저 최상단 훈련 대상 유닛의
+		// unit->getType().supplyRequired() >
+		// BWAPI::Broodwar->self()->supplyTotal() 인 경우
 		// 서플라이 추가를 하지 않으면 더이상 유닛 훈련이 안되기 때문에 deadlock 상황이라고 볼 수도 있습니다.
-		// 저그 종족의 경우 일꾼을 건물로 Morph 시킬 수 있기 때문에 고의적으로 이런 상황을 만들기도 하고, 
+		// 저그 종족의 경우 일꾼을 건물로 Morph 시킬 수 있기 때문에 고의적으로 이런 상황을 만들기도 하고,
 		// 전투에 의해 유닛이 많이 죽을 것으로 예상되는 상황에서는 고의적으로 서플라이 추가를 하지 않을수도 있기 때문에
 		// 참가자께서 잘 판단하셔서 개발하시기 바랍니다.
-		
+
 		// InitialBuildOrder 진행중에는 아무것도 하지 않습니다
 		if (isInitialBuildOrderFinished == false) {
 			return;
@@ -492,19 +274,22 @@ public class StrategyManager {
 		// 저글링 1마리가 게임에서는 서플라이를 0.5 차지하지만, BWAPI 에서는 서플라이를 1 차지한다
 		if (MyBotModule.Broodwar.self().supplyTotal() <= 400) {
 
-			// 서플라이가 다 꽉찼을때 새 서플라이를 지으면 지연이 많이 일어나므로, supplyMargin (게임에서의 서플라이 마진 값의 2배)만큼 부족해지면 새 서플라이를 짓도록 한다
+			// 서플라이가 다 꽉찼을때 새 서플라이를 지으면 지연이 많이 일어나므로, supplyMargin (게임에서의 서플라이
+			// 마진 값의 2배)만큼 부족해지면 새 서플라이를 짓도록 한다
 			// 이렇게 값을 정해놓으면, 게임 초반부에는 서플라이를 너무 일찍 짓고, 게임 후반부에는 서플라이를 너무 늦게 짓게 된다
 			int supplyMargin = 12;
 
 			// currentSupplyShortage 를 계산한다
-			int currentSupplyShortage = MyBotModule.Broodwar.self().supplyUsed() + supplyMargin - MyBotModule.Broodwar.self().supplyTotal();
+			int currentSupplyShortage = MyBotModule.Broodwar.self().supplyUsed() + supplyMargin
+					- MyBotModule.Broodwar.self().supplyTotal();
 
 			if (currentSupplyShortage > 0) {
-				
+
 				// 생산/건설 중인 Supply를 센다
 				int onBuildingSupplyCount = 0;
 
-				// 저그 종족인 경우, 생산중인 Zerg_Overlord (Zerg_Egg) 를 센다. Hatchery 등 건물은 세지 않는다
+				// 저그 종족인 경우, 생산중인 Zerg_Overlord (Zerg_Egg) 를 센다. Hatchery 등 건물은
+				// 세지 않는다
 				if (MyBotModule.Broodwar.self().getRace() == Race.Zerg) {
 					for (Unit unit : MyBotModule.Broodwar.self().getUnits()) {
 						if (unit.getType() == UnitType.Zerg_Egg && unit.getBuildType() == UnitType.Zerg_Overlord) {
@@ -516,7 +301,8 @@ public class StrategyManager {
 						}
 					}
 				}
-				// 저그 종족이 아닌 경우, 건설중인 Protoss_Pylon, Terran_Supply_Depot 를 센다. Nexus, Command Center 등 건물은 세지 않는다
+				// 저그 종족이 아닌 경우, 건설중인 Protoss_Pylon, Terran_Supply_Depot 를 센다.
+				// Nexus, Command Center 등 건물은 세지 않는다
 				else {
 					onBuildingSupplyCount += ConstructionManager.Instance().getConstructionQueueItemCount(
 							InformationManager.Instance().getBasicSupplyProviderUnitType(), null)
@@ -524,24 +310,26 @@ public class StrategyManager {
 				}
 
 				// 주석처리
-				//System.out.println("currentSupplyShortage : " + currentSupplyShortage + " onBuildingSupplyCount : " + onBuildingSupplyCount);
+				// System.out.println("currentSupplyShortage : " +
+				// currentSupplyShortage + " onBuildingSupplyCount : " +
+				// onBuildingSupplyCount);
 
 				if (currentSupplyShortage > onBuildingSupplyCount) {
-					
+
 					// BuildQueue 최상단에 SupplyProvider 가 있지 않으면 enqueue 한다
 					boolean isToEnqueue = true;
 					if (!BuildManager.Instance().buildQueue.isEmpty()) {
 						BuildOrderItem currentItem = BuildManager.Instance().buildQueue.getHighestPriorityItem();
-						if (currentItem.metaType.isUnit() 
-							&& currentItem.metaType.getUnitType() == InformationManager.Instance().getBasicSupplyProviderUnitType()) 
-						{
+						if (currentItem.metaType.isUnit() && currentItem.metaType.getUnitType() == InformationManager
+								.Instance().getBasicSupplyProviderUnitType()) {
 							isToEnqueue = false;
 						}
 					}
 					if (isToEnqueue) {
 						// 주석처리
-						//System.out.println("enqueue supply provider "
-						//		+ InformationManager.Instance().getBasicSupplyProviderUnitType());
+						// System.out.println("enqueue supply provider "
+						// +
+						// InformationManager.Instance().getBasicSupplyProviderUnitType());
 						BuildManager.Instance().buildQueue.queueAsHighestPriority(
 								new MetaType(InformationManager.Instance().getBasicSupplyProviderUnitType()), true);
 					}
@@ -549,7 +337,8 @@ public class StrategyManager {
 			}
 		}
 
-		// BasicBot 1.1 Patch End ////////////////////////////////////////////////		
+		// BasicBot 1.1 Patch End
+		// ////////////////////////////////////////////////
 	}
 
 	public void executeBasicCombatUnitTraining() {
@@ -577,85 +366,42 @@ public class StrategyManager {
 	}
 
 	public void executeCombat() {
+		
+		BaseLocation targetBaseLocation = null;
+		double closestDistance = 100000000;
 
-		// 공격 모드가 아닐 때에는 전투유닛들을 아군 진영 길목에 집결시켜서 방어
-		if (isFullScaleAttackStarted == false) {
-			Chokepoint firstChokePoint = BWTA.getNearestChokepoint(InformationManager.Instance().getMainBaseLocation(InformationManager.Instance().selfPlayer).getTilePosition());
+		for (BaseLocation baseLocation : InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer)) {
+			double distance = BWTA.getGroundDistance(
+				InformationManager.Instance().getMainBaseLocation(InformationManager.Instance().selfPlayer).getTilePosition(), 
+				baseLocation.getTilePosition());
 
-			for (Unit unit : MyBotModule.Broodwar.self().getUnits()) {
-				if (unit.getType() == InformationManager.Instance().getBasicCombatUnitType() && unit.isIdle()) {
-					commandUtil.attackMove(unit, firstChokePoint.getCenter());
-				}
-			}
-
-			// 전투 유닛이 2개 이상 생산되었고, 적군 위치가 파악되었으면 총공격 모드로 전환
-			if (MyBotModule.Broodwar.self().completedUnitCount(InformationManager.Instance().getBasicCombatUnitType()) > 2) {
-				if (InformationManager.Instance().enemyPlayer != null
-					&& InformationManager.Instance().enemyRace != Race.Unknown  
-					&& InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).size() > 0) {				
-					isFullScaleAttackStarted = true;
-				}
+			if (distance < closestDistance) {
+				closestDistance = distance;
+				targetBaseLocation = baseLocation;
 			}
 		}
-		// 공격 모드가 되면, 모든 전투유닛들을 적군 Main BaseLocation 로 공격 가도록 합니다
-		else {
-			//std.cout + "enemy OccupiedBaseLocations : " + InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance()._enemy).size() + std.endl;
-			
-			if (InformationManager.Instance().enemyPlayer != null
-					&& InformationManager.Instance().enemyRace != Race.Unknown 
-					&& InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).size() > 0) 
-			{					
-				// 공격 대상 지역 결정
-				BaseLocation targetBaseLocation = null;
-				double closestDistance = 100000000;
+		
+		for (Unit unit : MyBotModule.Broodwar.self().getUnits()) {
 
-				for (BaseLocation baseLocation : InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer)) {
-					double distance = BWTA.getGroundDistance(
-						InformationManager.Instance().getMainBaseLocation(InformationManager.Instance().selfPlayer).getTilePosition(), 
-						baseLocation.getTilePosition());
-
-					if (distance < closestDistance) {
-						closestDistance = distance;
-						targetBaseLocation = baseLocation;
-					}
-				}
-
-				if (targetBaseLocation != null) {
-					for (Unit unit : MyBotModule.Broodwar.self().getUnits()) {
-						// 건물은 제외
-						if (unit.getType().isBuilding()) {
-							continue;
-						}
-						// 모든 일꾼은 제외
-						if (unit.getType().isWorker()) {
-							continue;
-						}
-											
-						// canAttack 유닛은 attackMove Command 로 공격을 보냅니다
-						if (unit.canAttack()) {
-							
-							if (unit.isIdle()) {
-								commandUtil.attackMove(unit, targetBaseLocation.getPosition());
-							}
-						} 
-					}
-				}
+			if ( targetBaseLocation != null && unit.getType() == UnitType.Protoss_Zealot && unit.isIdle()) {
+				commandUtil.attackMove(unit, targetBaseLocation.getPosition());
 			}
 		}
 	}
-	
+
 	// BasicBot 1.1 Patch Start ////////////////////////////////////////////////
 	// 경기 결과 파일 Save / Load 및 로그파일 Save 예제 추가
 
 	/// 과거 전체 게임 기록을 로딩합니다
 	void loadGameRecordList() {
-	
-		// 과거의 게임에서 bwapi-data\write 폴더에 기록했던 파일은 대회 서버가 bwapi-data\read 폴더로 옮겨놓습니다
+
+		// 과거의 게임에서 bwapi-data\write 폴더에 기록했던 파일은 대회 서버가 bwapi-data\read 폴더로
+		// 옮겨놓습니다
 		// 따라서, 파일 로딩은 bwapi-data\read 폴더로부터 하시면 됩니다
 
 		// TODO : 파일명은 각자 봇 명에 맞게 수정하시기 바랍니다
 		String gameRecordFileName = "bwapi-data\\read\\makjangBot_GameRecord.dat";
-		
+
 		BufferedReader br = null;
 		try {
 			br = new BufferedReader(new FileReader(gameRecordFileName));
@@ -663,22 +409,40 @@ public class StrategyManager {
 			System.out.println("loadGameRecord from file: " + gameRecordFileName);
 
 			String currentLine;
-			StringTokenizer st;  
+			StringTokenizer st;
 			GameRecord tempGameRecord;
 			while ((currentLine = br.readLine()) != null) {
-				
+
 				st = new StringTokenizer(currentLine, " ");
 				tempGameRecord = new GameRecord();
-				if (st.hasMoreTokens()) { tempGameRecord.mapName = st.nextToken();}
-				if (st.hasMoreTokens()) { tempGameRecord.myName = st.nextToken();}
-				if (st.hasMoreTokens()) { tempGameRecord.myRace = st.nextToken();}
-				if (st.hasMoreTokens()) { tempGameRecord.myWinCount = Integer.parseInt(st.nextToken());}
-				if (st.hasMoreTokens()) { tempGameRecord.myLoseCount = Integer.parseInt(st.nextToken());}
-				if (st.hasMoreTokens()) { tempGameRecord.enemyName = st.nextToken();}
-				if (st.hasMoreTokens()) { tempGameRecord.enemyRace = st.nextToken();}
-				if (st.hasMoreTokens()) { tempGameRecord.enemyRealRace = st.nextToken();}
-				if (st.hasMoreTokens()) { tempGameRecord.gameFrameCount = Integer.parseInt(st.nextToken());}
-			
+				if (st.hasMoreTokens()) {
+					tempGameRecord.mapName = st.nextToken();
+				}
+				if (st.hasMoreTokens()) {
+					tempGameRecord.myName = st.nextToken();
+				}
+				if (st.hasMoreTokens()) {
+					tempGameRecord.myRace = st.nextToken();
+				}
+				if (st.hasMoreTokens()) {
+					tempGameRecord.myWinCount = Integer.parseInt(st.nextToken());
+				}
+				if (st.hasMoreTokens()) {
+					tempGameRecord.myLoseCount = Integer.parseInt(st.nextToken());
+				}
+				if (st.hasMoreTokens()) {
+					tempGameRecord.enemyName = st.nextToken();
+				}
+				if (st.hasMoreTokens()) {
+					tempGameRecord.enemyRace = st.nextToken();
+				}
+				if (st.hasMoreTokens()) {
+					tempGameRecord.enemyRealRace = st.nextToken();
+				}
+				if (st.hasMoreTokens()) {
+					tempGameRecord.gameFrameCount = Integer.parseInt(st.nextToken());
+				}
+
 				gameRecordList.add(tempGameRecord);
 			}
 		} catch (FileNotFoundException e) {
@@ -687,18 +451,20 @@ public class StrategyManager {
 			e.printStackTrace();
 		} finally {
 			try {
-				if (br != null) br.close();
+				if (br != null)
+					br.close();
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
-		}		
+		}
 	}
 
 	/// 과거 전체 게임 기록 + 이번 게임 기록을 저장합니다
 	void saveGameRecordList(boolean isWinner) {
 
 		// 이번 게임의 파일 저장은 bwapi-data\write 폴더에 하시면 됩니다.
-		// bwapi-data\write 폴더에 저장된 파일은 대회 서버가 다음 경기 때 bwapi-data\read 폴더로 옮겨놓습니다
+		// bwapi-data\write 폴더에 저장된 파일은 대회 서버가 다음 경기 때 bwapi-data\read 폴더로
+		// 옮겨놓습니다
 
 		// TODO : 파일명은 각자 봇 명에 맞게 수정하시기 바랍니다
 		String gameRecordFileName = "bwapi-data\\write\\makjangBot_GameRecord.dat";
@@ -724,8 +490,7 @@ public class StrategyManager {
 		if (isWinner) {
 			thisGameRecord.myWinCount = 1;
 			thisGameRecord.myLoseCount = 0;
-		}
-		else {
+		} else {
 			thisGameRecord.myWinCount = 0;
 			thisGameRecord.myLoseCount = 1;
 		}
@@ -745,13 +510,13 @@ public class StrategyManager {
 			ss.append(gameRecord.enemyRealRace + " ");
 			ss.append(gameRecord.gameFrameCount + "\n");
 		}
-		
+
 		Common.overwriteToFile(gameRecordFileName, ss.toString());
 	}
 
 	/// 이번 게임 중간에 상시적으로 로그를 저장합니다
 	void saveGameLog() {
-		
+
 		// 100 프레임 (5초) 마다 1번씩 로그를 기록합니다
 		// 참가팀 당 용량 제한이 있고, 타임아웃도 있기 때문에 자주 하지 않는 것이 좋습니다
 		// 로그는 봇 개발 시 디버깅 용도로 사용하시는 것이 좋습니다
@@ -783,5 +548,5 @@ public class StrategyManager {
 	}
 
 	// BasicBot 1.1 Patch End //////////////////////////////////////////////////
-	
+
 }

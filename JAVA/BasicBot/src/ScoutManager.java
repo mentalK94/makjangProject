@@ -18,6 +18,7 @@ public class ScoutManager {
 	private Unit currentScoutUnit;
 	private int currentScoutStatus;
 	
+	
 	public enum ScoutStatus {
 		NoScout,						///< 정찰 유닛을 미지정한 상태
 		MovingToAnotherBaseLocation,	///< 적군의 BaseLocation 이 미발견된 상태에서 정찰 유닛을 이동시키고 있는 상태
@@ -45,8 +46,8 @@ public class ScoutManager {
 		if (MyBotModule.Broodwar.getFrameCount() % 48 != 0) return;
 		
 		// scoutUnit 을 지정하고, scoutUnit 의 이동을 컨트롤함. 
-		assignScoutIfNeeded();
-		moveScoutUnit();
+		//assignScoutIfNeeded();
+		//moveScoutUnit();
 
 		// 참고로, scoutUnit 의 이동에 의해 발견된 정보를 처리하는 것은 InformationManager.update() 에서 수행함
 	}
@@ -68,7 +69,7 @@ public class ScoutManager {
 
 				for (Unit unit : MyBotModule.Broodwar.self().getUnits())
 				{
-					if (unit.getType() == UnitType.Terran_Barracks && unit.getType().isBuilding() == true && unit.getType().isResourceDepot() == false)
+					if (unit.getType() == UnitType.Protoss_Pylon && unit.getType().isBuilding() == true && unit.getType().isResourceDepot() == false)
 					{
 						firstBuilding = unit;
 						break;
