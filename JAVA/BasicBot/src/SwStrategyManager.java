@@ -798,36 +798,33 @@ public class SwStrategyManager {
 		// 현재 기본적인 건설상황 배럭2 팩토리1
 		ArrayList<Unit> barrackList = new ArrayList<>(); // 중복 서치를 막기 위해 배럭 리스트를 첫 서치 때 보관 by SW
 		ArrayList<Unit> factoryList = new ArrayList<>(); // 중복 서치를 막기 위해 팩토리 리스트를 첫 서치 때 보관 by SW
-		ArrayList<Unit> starportList = new ArrayList<>(); // 중복 서치를 막기 위해  스타포트 리스트를 첫 서치 때 보관 by SW
+//		ArrayList<Unit> starportList = new ArrayList<>(); // 중복 서치를 막기 위해  스타포트 리스트를 첫 서치 때 보관 by SW
+		
 		for (Unit unit : MyBotModule.Broodwar.self().getUnits()) {
 			if (unit.getType() == UnitType.Terran_Factory) {
 				factoryList.add(unit);
 			}else if (unit.getType() == UnitType.Terran_Barracks) {
 				barrackList.add(unit);
-			}else if(unit.getType() == UnitType.Terran_Starport){
-				starportList.add(unit);
+//			}else if(unit.getType() == UnitType.Terran_Starport){
+//				starportList.add(unit);
 			}
 		}
-		
-		int barracks = barrackList.size();
-		int factorys = factoryList.size();
-		int starports = starportList.size();
 		
 		// 종족별로 대량생산할 유닛선정 및 건물 건설
 		if(MyBotModule.Broodwar.enemy().getRace().equals(Race.Terran)){
 			// 탱크, 골리앗, 레이쓰
 			// 팩토리2, 스타포트1 추가
-			SWEnemyTerranStrategy.Instance().executeMidStrategy(factorys, starports);
+			SWEnemyTerranStrategy.Instance().executeMidStrategy(factoryList);
 			
 		} else if(MyBotModule.Broodwar.enemy().getRace().equals(Race.Protoss)){
 			// 탱크, 골리앗
 			// 팩토리3 추가
-			SWEnemyProtossStrategy.Instance().executeMidStrategy(factorys);
+			//SWEnemyProtossStrategy.Instance().executeMidStrategy(factoryList);
 			
 		} else if(MyBotModule.Broodwar.enemy().getRace().equals(Race.Zerg)){
 			// 탱크, 마린, 메딕, 파이어뱃
 			// 팩토리1 배럭2 추가
-			SWEnemyZergStrategy.Instance().executeMidStrategy(factorys, barracks);
+			//SWEnemyZergStrategy.Instance().executeMidStrategy(factoryList, barrackList);
 		}
 		
 		// 생산된 유닛들의 랠리포인트 설정 및

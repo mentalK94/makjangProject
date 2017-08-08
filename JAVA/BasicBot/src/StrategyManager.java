@@ -100,16 +100,16 @@ public class StrategyManager {
 		SwStrategyManager.Instance().executeCombat();
 		
 		// 초기정찰시 종족별 특이사항 감지 및 대응
-		if(InformationManager.Instance().getMainBaseLocation(MyBotModule.Broodwar.enemy()) != null &&
-				ScoutManager.ScoutStatus.MoveAroundEnemyBaseLocation.ordinal() == ScoutManager.Instance().getScoutStatus()){
-			SwStrategyManager.Instance().analysisEnemyStrategy();
-		}
-		
-		// 확장전략
-		SwStrategyManager.Instance().executeExpasionManagemnet();
-		
-		// 종족별 중반전략
-		SwStrategyManager.Instance().executeMidStrategy();
+//		if(InformationManager.Instance().getMainBaseLocation(MyBotModule.Broodwar.enemy()) != null &&
+//				ScoutManager.ScoutStatus.MoveAroundEnemyBaseLocation.ordinal() == ScoutManager.Instance().getScoutStatus()){
+//			SwStrategyManager.Instance().analysisEnemyStrategy();
+//		}
+//		
+//		// 확장전략
+//		SwStrategyManager.Instance().executeExpasionManagemnet();
+//		
+//		// 종족별 중반전략
+//		SwStrategyManager.Instance().executeMidStrategy();
 		
 		// BasicBot 1.1 Patch Start ////////////////////////////////////////////////
 		// 경기 결과 파일 Save / Load 및 로그파일 Save 예제 추가
@@ -147,7 +147,7 @@ public class StrategyManager {
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Factory, BuildOrderItem.SeedPositionStrategy.MainBaseBackYard, true);
 			// 벙커짓기 임시 추가
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Bunker,
-					BuildOrderItem.SeedPositionStrategy.FirstChokePoint, true);
+					BuildOrderItem.SeedPositionStrategy.MainBaseFrontYard, true);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType(), false);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getWorkerType(), false);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Terran_Machine_Shop, false);
