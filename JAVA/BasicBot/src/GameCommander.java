@@ -65,7 +65,7 @@ public class GameCommander {
 		if ( isToFindError) System.out.print("f");
 
 		// 게임 초기 정찰 유닛 지정 및 정찰 유닛 컨트롤을 실행한다
-		//ScoutManager.Instance().update();
+		ScoutManager.Instance().update();
 
 		if ( isToFindError) System.out.print("g");
 

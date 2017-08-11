@@ -15,7 +15,7 @@ import bwta.Region;
 /// 적군의 BaseLocation 위치를 알아내는 것까지만 개발되어있습니다
 public class ScoutManager {
 
-	private Unit currentScoutUnit;
+	public Unit currentScoutUnit;
 	private int currentScoutStatus;
 	
 	
@@ -43,11 +43,11 @@ public class ScoutManager {
 	public void update()
 	{
 		// 2초에 1번만 실행합니다
-		if (MyBotModule.Broodwar.getFrameCount() % 48 != 0) return;
+		if (MyBotModule.Broodwar.getFrameCount() % 72 != 0) return;
 		
 		// scoutUnit 을 지정하고, scoutUnit 의 이동을 컨트롤함. 
 		//assignScoutIfNeeded();
-		//moveScoutUnit();
+		moveScoutUnit();
 
 		// 참고로, scoutUnit 의 이동에 의해 발견된 정보를 처리하는 것은 InformationManager.update() 에서 수행함
 	}
@@ -118,6 +118,7 @@ public class ScoutManager {
 		{
 			// currentScoutTargetBaseLocation 가 null 이거나 정찰 유닛이 currentScoutTargetBaseLocation 에 도착했으면 
 			// 아군 MainBaseLocation 으로부터 가장 가까운 미정찰 BaseLocation 을 새로운 정찰 대상 currentScoutTargetBaseLocation 으로 잡아서 이동
+			System.out.println("getDistance 직전");
 			if (currentScoutTargetBaseLocation == null || currentScoutUnit.getDistance(currentScoutTargetBaseLocation.getPosition()) < 5 * Config.TILE_SIZE) 
 			{
 				currentScoutStatus = ScoutStatus.MovingToAnotherBaseLocation.ordinal();
@@ -127,12 +128,13 @@ public class ScoutManager {
 				BaseLocation closestBaseLocation = null;
 				for (BaseLocation startLocation : BWTA.getStartLocations())
 				{
+					System.out.println("for (BaseLocation startLocation : BWTA.getStartLocations())");
 					// if we haven't explored it yet (방문했었던 곳은 다시 가볼 필요 없음)
 					if (MyBotModule.Broodwar.isExplored(startLocation.getTilePosition()) == false)
 					{
 						// GroundDistance 를 기준으로 가장 가까운 곳으로 선정
 						tempDistance = (double)(InformationManager.Instance().getMainBaseLocation(MyBotModule.Broodwar.self()).getGroundDistance(startLocation) + 0.5);
-
+						System.out.println("tempDistance : "+tempDistance);
 						if (tempDistance > 0 && tempDistance < closestDistance) {
 							closestBaseLocation = startLocation;
 							closestDistance = tempDistance;
@@ -142,6 +144,7 @@ public class ScoutManager {
 
 				if (closestBaseLocation != null) {
 					// assign a scout to go scout it
+					System.out.println(currentScoutUnit.getID()+"에게 이동하라고 명령 = "+closestBaseLocation.getPosition());
 					commandUtil.move(currentScoutUnit, closestBaseLocation.getPosition());
 					currentScoutTargetBaseLocation = closestBaseLocation;
 				}

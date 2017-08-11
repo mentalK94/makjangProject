@@ -73,7 +73,7 @@ public class Config {
 	
 
 	/// 화면 표시 여부 - 게임 정보
-	public static boolean DrawGameInfo = true;
+	public static boolean DrawGameInfo = false;
 	
 	/// 화면 표시 여부 - 미네랄, 가스
 	public static boolean DrawResourceInfo = false;
@@ -83,14 +83,14 @@ public class Config {
 	public static boolean DrawMapGrid = false;
 
 	/// 화면 표시 여부 - 유닛 HitPoint
-	public static boolean DrawUnitHealthBars = true;
+	public static boolean DrawUnitHealthBars = false;
 	/// 화면 표시 여부 - 유닛 통계
-	public static boolean DrawEnemyUnitInfo = true;
+	public static boolean DrawEnemyUnitInfo = false;
 	/// 화면 표시 여부 - 유닛 ~ Target 간 직선
 	public static boolean DrawUnitTargetInfo = false;
 
 	/// 화면 표시 여부 - 빌드 큐
-	public static boolean DrawProductionInfo = true;
+	public static boolean DrawProductionInfo = false;
 
 	/// 화면 표시 여부 - 건물 Construction 상황
 	public static boolean DrawBuildingInfo = false;
@@ -98,9 +98,9 @@ public class Config {
 	public static boolean DrawReservedBuildingTiles = false;
 	
 	/// 화면 표시 여부 - 정찰 상태
-	public static boolean DrawScoutInfo = true;
+	public static boolean DrawScoutInfo = false;
 	/// 화면 표시 여부 - 일꾼 목록
-	public static boolean DrawWorkerInfo = true;
+	public static boolean DrawWorkerInfo = false;
 	
 	/// 화면 표시 여부 - 마우스 커서	
 	public static boolean DrawMouseCursorInfo = false;

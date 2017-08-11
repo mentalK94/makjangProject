@@ -702,7 +702,7 @@ public class SwStrategyManager {
 		SWStrategyResponse.updateEnemyStrategyChanged();
 	}
 
-	public void executeExpasionManagemnet() {
+/*	public void executeExpasionManagemnet() {
 		if (isInitialBuildOrderFinished == false) {
 			return;
 		}
@@ -730,7 +730,7 @@ public class SwStrategyManager {
 		
 		// 아무도 없는 지역이면 baseList에 담는다
 		// 추가확장 이전에 지도 전체 정찰 시작 
-		ArrayList<BaseLocation> baseList = SWScoutManager.Instance().allBaseLocationScout();
+		//ArrayList<BaseLocation> baseList = SWScoutManager.Instance().allBaseLocationScout();
 		
 		// 전체 정찰완료 후 확장할곳 선택
 		if(isFirstExpasionFinished && isAllBaseLocationVisited){
@@ -739,7 +739,7 @@ public class SwStrategyManager {
 			if(MyBotModule.Broodwar.self().minerals() >= 400 && MyBotModule.Broodwar.self().supplyUsed() < 390 &&
 					MyBotModule.Broodwar.self().supplyUsed() > limitedSupplyUsed){
 				
-				BaseLocation nextBaseLocation = baseList.get(0);
+				//BaseLocation nextBaseLocation = baseList.get(0);
 				
 //				BuildManager.Instance().buildQueue.queueAsLowestPriority(
 //						UnitType.Terran_Command_Center, BuildOrderItem.SeedPositionStrategy.FirstExpansionLocation, true);
@@ -758,7 +758,7 @@ public class SwStrategyManager {
 				isAllBaseLocationVisited = false;
 			}
 		}
-	}
+	}*/
 
 	// 본진 방어전략 
 	private void executeDefendBase() {
