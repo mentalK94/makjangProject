@@ -269,7 +269,7 @@ public class ConstructionManager {
 	            }
 				else if (b.isBuildCommandGiven() == false)
 	            {
-					//System.out.println(b.getType() + " build commanded to " + b.getConstructionWorker().getID() + ", buildCommandGiven true " );
+					System.out.println(b.getType() + " build commanded to " + b.getConstructionWorker().getID() + ", buildCommandGiven true "+b.getFinalPosition() );
 					
 					// build command 
 					b.getConstructionWorker().build(b.getType(), b.getFinalPosition());

@@ -96,9 +96,14 @@ public class StrategyManager {
 		// //////////////////////////////////////////////////
 	}
 	boolean isFirstPylon = false;
+	boolean isFirstGate = false;
+	boolean isSecondGate = false;
 	/// 경기 진행 중 매 프레임마다 경기 전략 관련 로직을 실행합니다
+
+	//boolean isCanBuild;
 	public void update() {
-		
+/*		if(idleProbe!=null && idleProbe.canBuild())
+			isCanBuild = true;*/
 		if(MyBotModule.Broodwar.self().supplyUsed() == 8){
 			nexus.build(UnitType.Protoss_Probe);
 		}
@@ -115,14 +120,16 @@ public class StrategyManager {
 				}
 			}
 		}
-		if(MyBotModule.Broodwar.self().supplyUsed() == 14 && MyBotModule.Broodwar.self().minerals() >= 100){
+		if(MyBotModule.Broodwar.self().supplyUsed() >= 14 && MyBotModule.Broodwar.self().minerals() >= 100 && !isFirstPylon){
 			nexus.build(UnitType.Protoss_Probe);
-			for(Unit u : MyBotModule.Broodwar.self().getUnits()){
-				if(!isFirstPylon && u.getType() == UnitType.Protoss_Probe && u.isCompleted()){
-					ConstructionManager.Instance().addConstructionTask(UnitType.Protoss_Pylon, new TilePosition(64, 64));
-					isFirstPylon = true;
-				}
-			}
+			isFirstPylon = idleProbe.build(UnitType.Protoss_Pylon,new TilePosition(66, 59));
+		}
+		if(isFirstPylon && !isFirstGate) {
+			isFirstGate = idleProbe.build(UnitType.Protoss_Gateway,new TilePosition(62, 61));
+		}
+		
+		if(isFirstPylon && isFirstGate && !isSecondGate) {
+			isSecondGate = idleProbe.build(UnitType.Protoss_Gateway,new TilePosition(60, 57));
 		}
 		
 		isInitialBuildOrderFinished = false;
