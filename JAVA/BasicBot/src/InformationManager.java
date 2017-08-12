@@ -470,11 +470,11 @@ public class InformationManager {
 				final UnitInfo ui = unitData.get(player).getUnitAndUnitInfoMap().get(it.next());
 				if (ui.getType().isBuilding()) {
 					TilePosition buildingPosition = ui.getLastPosition().toTilePosition();
-
-					if (buildingPosition.getX() >= baseLocation.getTilePosition().getX() - maxRadius
-							&& buildingPosition.getX() <= baseLocation.getTilePosition().getX() + maxRadius
-							&& buildingPosition.getY() >= baseLocation.getTilePosition().getY() - maxRadius
-							&& buildingPosition.getY() <= baseLocation.getTilePosition().getY() + maxRadius) {
+					if(BWTA.getRegion(buildingPosition) != BWTA.getRegion(baseLocation.getTilePosition())) continue;
+					if (buildingPosition.getX() >= baseLocation.getTilePosition().getX() - radius
+							&& buildingPosition.getX() <= baseLocation.getTilePosition().getX() + radius
+							&& buildingPosition.getY() >= baseLocation.getTilePosition().getY() - radius
+							&& buildingPosition.getY() <= baseLocation.getTilePosition().getY() + radius) {
 						return true;
 					}
 				}

@@ -469,7 +469,7 @@ public class WorkerManager {
 
 			// Move / Idle Worker 가 없을때, 다른 Worker 중에서 차출한다 
 			if (unit.isCompleted() 
-				&& (workerData.getWorkerJob(unit) != WorkerData.WorkerJob.Move && workerData.getWorkerJob(unit) != WorkerData.WorkerJob.Idle && workerData.getWorkerJob(unit) != WorkerData.WorkerJob.Build))
+				&& (workerData.getWorkerJob(unit) != WorkerData.WorkerJob.Move && workerData.getWorkerJob(unit) != WorkerData.WorkerJob.Idle && workerData.getWorkerJob(unit) != WorkerData.WorkerJob.Build && workerData.getWorkerJob(unit) != WorkerData.WorkerJob.Scout))
 			{
 				// if it is a new closest distance, set the pointer
 				double distance = unit.getDistance(buildingPosition.toPosition());

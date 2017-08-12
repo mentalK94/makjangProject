@@ -149,6 +149,10 @@ public class ScoutManager {
 					currentScoutTargetBaseLocation = closestBaseLocation;
 				}
 			}
+			else {
+				//반복적으로 move를 명령
+				commandUtil.move(currentScoutUnit, currentScoutTargetBaseLocation.getPosition());
+			}
 		}
 		// if we know where the enemy region is
 		else 
@@ -173,6 +177,7 @@ public class ScoutManager {
 					if(currentScoutUnit.getHitPoints() < UnitType.Terran_SCV.maxHitPoints()*0.9){
 						System.out.println("Scout SCV is Under Attacked!!!");
 						WorkerManager.Instance().setIdleWorker(currentScoutUnit);
+						currentScoutUnit = null;
 						currentScoutStatus = ScoutStatus.NoScout.ordinal();
 						currentScoutTargetPosition = myBaseLocation.getPosition();
 					}
