@@ -106,6 +106,15 @@ public class StrategyManager {
 	/// 경기 진행 중 매 프레임마다 경기 전략 관련 로직을 실행합니다
 
 	public void update() {
+
+		System.out.println("MyBotModule.Broodwar.mapName() ; " + MyBotModule.Broodwar.mapName());
+
+		if(MyBotModule.Broodwar.mapName() == ""){
+
+		}else{
+
+		};
+
 		if (!isInitialBuildOrderFinished) {
 			if (MyBotModule.Broodwar.self().supplyUsed() == 8) {
 				nexus.build(UnitType.Protoss_Probe);
