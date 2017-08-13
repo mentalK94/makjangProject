@@ -118,7 +118,7 @@ public class ScoutManager {
 		{
 			// currentScoutTargetBaseLocation 가 null 이거나 정찰 유닛이 currentScoutTargetBaseLocation 에 도착했으면 
 			// 아군 MainBaseLocation 으로부터 가장 가까운 미정찰 BaseLocation 을 새로운 정찰 대상 currentScoutTargetBaseLocation 으로 잡아서 이동
-			System.out.println("getDistance 직전");
+			//System.out.println("getDistance 직전");
 			if (currentScoutTargetBaseLocation == null || currentScoutUnit.getDistance(currentScoutTargetBaseLocation.getPosition()) < 5 * Config.TILE_SIZE) 
 			{
 				currentScoutStatus = ScoutStatus.MovingToAnotherBaseLocation.ordinal();
@@ -128,13 +128,13 @@ public class ScoutManager {
 				BaseLocation closestBaseLocation = null;
 				for (BaseLocation startLocation : BWTA.getStartLocations())
 				{
-					System.out.println("for (BaseLocation startLocation : BWTA.getStartLocations())");
+					//System.out.println("for (BaseLocation startLocation : BWTA.getStartLocations())");
 					// if we haven't explored it yet (방문했었던 곳은 다시 가볼 필요 없음)
 					if (MyBotModule.Broodwar.isExplored(startLocation.getTilePosition()) == false)
 					{
 						// GroundDistance 를 기준으로 가장 가까운 곳으로 선정
 						tempDistance = (double)(InformationManager.Instance().getMainBaseLocation(MyBotModule.Broodwar.self()).getGroundDistance(startLocation) + 0.5);
-						System.out.println("tempDistance : "+tempDistance);
+						//System.out.println("tempDistance : "+tempDistance);
 						if (tempDistance > 0 && tempDistance < closestDistance) {
 							closestBaseLocation = startLocation;
 							closestDistance = tempDistance;
