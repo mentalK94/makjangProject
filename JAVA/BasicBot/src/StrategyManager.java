@@ -67,7 +67,7 @@ public class StrategyManager {
 		// 경기 결과 파일 Save / Load 및 로그파일 Save 예제 추가
 
 		// 과거 게임 기록을 로딩합니다
-		//loadGameRecordList();
+		// loadGameRecordList();
 
 		// BasicBot 1.1 Patch End
 		// //////////////////////////////////////////////////
@@ -114,37 +114,129 @@ public class StrategyManager {
 			lostTempleUpdate();
 		else if (MyBotModule.Broodwar.mapFileName().toLowerCase().indexOf("hunter") != -1)
 			hunterUpdate();
+
+		defence();
+	}
+
+	boolean isUnderAttacked;
+	Position underAttackPosition;
+
+	private void defence() {
+		if (MyBotModule.Broodwar.getFrameCount() % 4 != 0)
+			return;
+		boolean underAttackFlag = false;
+		Unit maxDistMineral = null;
+		if (!underAttackFlag) {
+			for (Unit attacked : MyBotModule.Broodwar.self().getUnits()) {
+				if (attacked.isUnderAttack()) {
+					double dist = BWTA.getGroundDistance(attacked.getTilePosition(), InformationManager.Instance()
+							.getMainBaseLocation(MyBotModule.Broodwar.self()).getTilePosition());
+					if (dist <= 300) {
+						for (Unit enemy : MyBotModule.Broodwar.enemy().getUnits()) {
+							double enemyDist = BWTA.getGroundDistance(attacked.getTilePosition(),
+									enemy.getTilePosition());
+							if (enemyDist <= 300) {
+								double maxDist = 0;
+								for (Unit mineral : MyBotModule.Broodwar.getAllUnits()) {
+									if (mineral.getType() == UnitType.Resource_Mineral_Field
+											&& BWTA.getGroundDistance(mineral.getTilePosition(),
+													InformationManager.Instance()
+															.getMainBaseLocation(MyBotModule.Broodwar.self())
+															.getTilePosition()) <= 300) {
+										double temp = BWTA.getGroundDistance(mineral.getTilePosition(),
+												enemy.getTilePosition());
+										if (temp > maxDist) {
+											maxDist = temp;
+											maxDistMineral = mineral;
+										}
+									}
+								}
+								// System.out.println("공격하는 애와 받는애의 거리 :
+								// "+enemyDist);
+								// underAttackPosition = uu.getPosition();
+								// break;
+							}
+						}
+						isUnderAttacked = true;
+						underAttackFlag = true;
+						break;
+					}
+				}
+			}
+		}
+		if (!underAttackFlag) {
+			isUnderAttacked = false;
+		}
+
+		if (isUnderAttacked) {
+			for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
+				if (u.getType() == UnitType.Protoss_Probe) {
+					if (BWTA.getGroundDistance(u.getTilePosition(), InformationManager.Instance()
+							.getMainBaseLocation(MyBotModule.Broodwar.self()).getTilePosition()) <= 300) {
+						commandUtil.attackMove(u, underAttackPosition);
+					} else if (!u.isGatheringMinerals()) {
+						u.move(InformationManager.Instance().getMainBaseLocation(MyBotModule.Broodwar.self())
+								.getPosition());
+					}
+				}
+			}
+		}
 	}
 
 	public void setHunterInitialBuildOrder() {
 		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe);
 		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe);
 		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe);
-		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe); // 프로브 8
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe); // 프로브
+																							// 8
 
-		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Pylon, BuildOrderItem.SeedPositionStrategy.MainBaseLocation);
-
-		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe);
-		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe); // 프로브 10
-
-		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway, BuildOrderItem.SeedPositionStrategy.MainBaseLocation);
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Pylon,
+				BuildOrderItem.SeedPositionStrategy.MainBaseLocation);
 
 		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe);
-		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe); // 프로브 12
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe); // 프로브
+																							// 10
 
-		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway, BuildOrderItem.SeedPositionStrategy.MainBaseLocation);
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway,
+				BuildOrderItem.SeedPositionStrategy.MainBaseLocation);
 
-		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe); // 프로브 13
-		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Zealot); // 질럿 1 (인구수  15) 
-		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Pylon, BuildOrderItem.SeedPositionStrategy.MainBaseLocation);
-		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe); // 프로브 14 (인구수 16)
-		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Zealot); // 질럿 2 (인구수 18)
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe);
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe); // 프로브
+																							// 12
 
-		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe); // 프로브 15 (인구수 19)
-		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Zealot); // 질럿 3 (인구수 21)
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway,
+				BuildOrderItem.SeedPositionStrategy.MainBaseLocation);
 
-		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway, BuildOrderItem.SeedPositionStrategy.MainBaseLocation);
-		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Assimilator, BuildOrderItem.SeedPositionStrategy.MainBaseLocation);
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe); // 프로브
+																							// 13
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Zealot); // 질럿
+																							// 1
+																							// (인구수
+																							// 15)
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Pylon,
+				BuildOrderItem.SeedPositionStrategy.MainBaseLocation);
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe); // 프로브
+																							// 14
+																							// (인구수
+																							// 16)
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Zealot); // 질럿
+																							// 2
+																							// (인구수
+																							// 18)
+
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe); // 프로브
+																							// 15
+																							// (인구수
+																							// 19)
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Zealot); // 질럿
+																							// 3
+																							// (인구수
+																							// 21)
+
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway,
+				BuildOrderItem.SeedPositionStrategy.MainBaseLocation);
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Assimilator,
+				BuildOrderItem.SeedPositionStrategy.MainBaseLocation);
 
 	}
 
@@ -174,7 +266,8 @@ public class StrategyManager {
 					secondGate = u;
 		if (secondGate != null && thirdGate == null)
 			for (Unit u : MyBotModule.Broodwar.self().getUnits())
-				if (u.getType() == UnitType.Protoss_Gateway && u.getID() != firstGate.getID() && u.getID() != secondGate.getID())
+				if (u.getType() == UnitType.Protoss_Gateway && u.getID() != firstGate.getID()
+						&& u.getID() != secondGate.getID())
 					thirdGate = u;
 	}
 
@@ -182,9 +275,11 @@ public class StrategyManager {
 		if (!isInitialBuildOrderFinished) {
 			if (MyBotModule.Broodwar.self().supplyUsed() == 8)
 				nexus.build(UnitType.Protoss_Probe);
-			if (MyBotModule.Broodwar.self().supplyUsed() == 10 && nexus.isIdle() && MyBotModule.Broodwar.self().minerals() >= 50)
+			if (MyBotModule.Broodwar.self().supplyUsed() == 10 && nexus.isIdle()
+					&& MyBotModule.Broodwar.self().minerals() >= 50)
 				nexus.build(UnitType.Protoss_Probe);
-			if (MyBotModule.Broodwar.self().supplyUsed() == 12 && nexus.isIdle() && MyBotModule.Broodwar.self().minerals() >= 50) {
+			if (MyBotModule.Broodwar.self().supplyUsed() == 12 && nexus.isIdle()
+					&& MyBotModule.Broodwar.self().minerals() >= 50) {
 				nexus.build(UnitType.Protoss_Probe);
 				for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
 					if (u.getType() == UnitType.Protoss_Probe && u.isCompleted()) {
@@ -194,9 +289,11 @@ public class StrategyManager {
 					}
 				}
 			}
-			if (MyBotModule.Broodwar.self().supplyUsed() == 14 && nexus.isIdle() && MyBotModule.Broodwar.self().minerals() >= 50)
+			if (MyBotModule.Broodwar.self().supplyUsed() == 14 && nexus.isIdle()
+					&& MyBotModule.Broodwar.self().minerals() >= 50)
 				nexus.build(UnitType.Protoss_Probe);
-			if (MyBotModule.Broodwar.self().supplyUsed() >= 12 && MyBotModule.Broodwar.self().minerals() >= 100 && !isFirstPylon)
+			if (MyBotModule.Broodwar.self().supplyUsed() >= 12 && MyBotModule.Broodwar.self().minerals() >= 100
+					&& !isFirstPylon)
 				isFirstPylon = idleProbe.build(UnitType.Protoss_Pylon, new TilePosition(79, 61));
 			if (isFirstPylon && !isFirstGate)
 				isFirstGate = idleProbe.build(UnitType.Protoss_Gateway, new TilePosition(76, 63));
@@ -229,9 +326,11 @@ public class StrategyManager {
 		if (!isInitialBuildOrderFinished) {
 			if (MyBotModule.Broodwar.self().supplyUsed() == 8)
 				nexus.build(UnitType.Protoss_Probe);
-			if (MyBotModule.Broodwar.self().supplyUsed() == 10 && nexus.isIdle() && MyBotModule.Broodwar.self().minerals() >= 50)
+			if (MyBotModule.Broodwar.self().supplyUsed() == 10 && nexus.isIdle()
+					&& MyBotModule.Broodwar.self().minerals() >= 50)
 				nexus.build(UnitType.Protoss_Probe);
-			if (MyBotModule.Broodwar.self().supplyUsed() == 12 && nexus.isIdle() && MyBotModule.Broodwar.self().minerals() >= 50) {
+			if (MyBotModule.Broodwar.self().supplyUsed() == 12 && nexus.isIdle()
+					&& MyBotModule.Broodwar.self().minerals() >= 50) {
 				nexus.build(UnitType.Protoss_Probe);
 				for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
 					if (u.getType() == UnitType.Protoss_Probe && u.isCompleted()) {
@@ -241,9 +340,11 @@ public class StrategyManager {
 					}
 				}
 			}
-			if (MyBotModule.Broodwar.self().supplyUsed() == 14 && nexus.isIdle() && MyBotModule.Broodwar.self().minerals() >= 50)
+			if (MyBotModule.Broodwar.self().supplyUsed() == 14 && nexus.isIdle()
+					&& MyBotModule.Broodwar.self().minerals() >= 50)
 				nexus.build(UnitType.Protoss_Probe);
-			if (MyBotModule.Broodwar.self().supplyUsed() >= 12 && MyBotModule.Broodwar.self().minerals() >= 100 && !isFirstPylon)
+			if (MyBotModule.Broodwar.self().supplyUsed() >= 12 && MyBotModule.Broodwar.self().minerals() >= 100
+					&& !isFirstPylon)
 				isFirstPylon = idleProbe.build(UnitType.Protoss_Pylon, new TilePosition(66, 59));
 			if (isFirstPylon && !isFirstGate)
 				isFirstGate = idleProbe.build(UnitType.Protoss_Gateway, new TilePosition(62, 61));
@@ -296,9 +397,11 @@ public class StrategyManager {
 					if (unit.getType().isResourceDepot()) {
 						if (unit.isTraining() == false || unit.getLarva().size() > 0) {
 							// 빌드큐에 일꾼 생산이 1개는 있도록 한다
-							if (BuildManager.Instance().buildQueue.getItemCount(InformationManager.Instance().getWorkerType(), null) == 0) {
+							if (BuildManager.Instance().buildQueue
+									.getItemCount(InformationManager.Instance().getWorkerType(), null) == 0) {
 								// std.cout + "worker enqueue" + std.endl;
-								BuildManager.Instance().buildQueue.queueAsLowestPriority(new MetaType(InformationManager.Instance().getWorkerType()), false);
+								BuildManager.Instance().buildQueue.queueAsLowestPriority(
+										new MetaType(InformationManager.Instance().getWorkerType()), false);
 							}
 						}
 					}
@@ -332,9 +435,11 @@ public class StrategyManager {
 					if (unit.getType().isResourceDepot()) {
 						if (unit.isTraining() == false || unit.getLarva().size() > 0) {
 							// 빌드큐에 일꾼 생산이 1개는 있도록 한다
-							if (BuildManager.Instance().buildQueue.getItemCount(InformationManager.Instance().getWorkerType(), null) == 0) {
+							if (BuildManager.Instance().buildQueue
+									.getItemCount(InformationManager.Instance().getWorkerType(), null) == 0) {
 								// std.cout + "worker enqueue" + std.endl;
-								BuildManager.Instance().buildQueue.queueAsLowestPriority(new MetaType(InformationManager.Instance().getWorkerType()), false);
+								BuildManager.Instance().buildQueue.queueAsLowestPriority(
+										new MetaType(InformationManager.Instance().getWorkerType()), false);
 							}
 						}
 					}
@@ -386,7 +491,8 @@ public class StrategyManager {
 			int supplyMargin = 12;
 
 			// currentSupplyShortage 를 계산한다
-			int currentSupplyShortage = MyBotModule.Broodwar.self().supplyUsed() + supplyMargin - MyBotModule.Broodwar.self().supplyTotal();
+			int currentSupplyShortage = MyBotModule.Broodwar.self().supplyUsed() + supplyMargin
+					- MyBotModule.Broodwar.self().supplyTotal();
 
 			if (currentSupplyShortage > 0) {
 
@@ -409,7 +515,9 @@ public class StrategyManager {
 				// 저그 종족이 아닌 경우, 건설중인 Protoss_Pylon, Terran_Supply_Depot 를 센다.
 				// Nexus, Command Center 등 건물은 세지 않는다
 				else {
-					onBuildingSupplyCount += ConstructionManager.Instance().getConstructionQueueItemCount(InformationManager.Instance().getBasicSupplyProviderUnitType(), null) * InformationManager.Instance().getBasicSupplyProviderUnitType().supplyProvided();
+					onBuildingSupplyCount += ConstructionManager.Instance().getConstructionQueueItemCount(
+							InformationManager.Instance().getBasicSupplyProviderUnitType(), null)
+							* InformationManager.Instance().getBasicSupplyProviderUnitType().supplyProvided();
 				}
 
 				// 주석처리
@@ -423,7 +531,8 @@ public class StrategyManager {
 					boolean isToEnqueue = true;
 					if (!BuildManager.Instance().buildQueue.isEmpty()) {
 						BuildOrderItem currentItem = BuildManager.Instance().buildQueue.getHighestPriorityItem();
-						if (currentItem.metaType.isUnit() && currentItem.metaType.getUnitType() == InformationManager.Instance().getBasicSupplyProviderUnitType()) {
+						if (currentItem.metaType.isUnit() && currentItem.metaType.getUnitType() == InformationManager
+								.Instance().getBasicSupplyProviderUnitType()) {
 							isToEnqueue = false;
 						}
 					}
@@ -432,7 +541,8 @@ public class StrategyManager {
 						// System.out.println("enqueue supply provider "
 						// +
 						// InformationManager.Instance().getBasicSupplyProviderUnitType());
-						BuildManager.Instance().buildQueue.queueAsHighestPriority(new MetaType(InformationManager.Instance().getBasicSupplyProviderUnitType()), true);
+						BuildManager.Instance().buildQueue.queueAsHighestPriority(
+								new MetaType(InformationManager.Instance().getBasicSupplyProviderUnitType()), true);
 					}
 				}
 			}
@@ -454,8 +564,11 @@ public class StrategyManager {
 			for (Unit unit : MyBotModule.Broodwar.self().getUnits()) {
 				if (unit.getType() == InformationManager.Instance().getBasicCombatBuildingType()) {
 					if (unit.isTraining() == false || unit.getLarva().size() > 0) {
-						if (BuildManager.Instance().buildQueue.getItemCount(InformationManager.Instance().getBasicCombatUnitType(), null) == 0) {
-							BuildManager.Instance().buildQueue.queueAsLowestPriority(InformationManager.Instance().getBasicCombatUnitType(), BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
+						if (BuildManager.Instance().buildQueue
+								.getItemCount(InformationManager.Instance().getBasicCombatUnitType(), null) == 0) {
+							BuildManager.Instance().buildQueue.queueAsLowestPriority(
+									InformationManager.Instance().getBasicCombatUnitType(),
+									BuildOrderItem.SeedPositionStrategy.MainBaseLocation, true);
 						}
 					}
 				}
@@ -464,17 +577,21 @@ public class StrategyManager {
 	}
 
 	public int atackTiming = 0;
+
 	public void executeCombat_hunter() {
-		if(atackTiming == 0) {
-			if(InformationManager.Instance().enemyRace==Race.Protoss)
+		if (atackTiming == 0) {
+			if (InformationManager.Instance().enemyRace == Race.Protoss)
 				atackTiming = 15;
-			else if(InformationManager.Instance().enemyRace == Race.Terran || InformationManager.Instance().enemyRace == Race.Zerg)
+			else if (InformationManager.Instance().enemyRace == Race.Terran
+					|| InformationManager.Instance().enemyRace == Race.Zerg)
 				atackTiming = 3;
 		}
 		// 공격 모드가 아닐 때에는 전투유닛들을 아군 진영 길목에 집결시켜서 방어
 		if (isFullScaleAttackStarted == false) {
-			Chokepoint firstChokePoint = BWTA.getNearestChokepoint(InformationManager.Instance().getMainBaseLocation(InformationManager.Instance().selfPlayer).getTilePosition());
-			Chokepoint secondChokePoint = InformationManager.Instance().getSecondChokePoint(InformationManager.Instance().selfPlayer);
+			Chokepoint firstChokePoint = BWTA.getNearestChokepoint(InformationManager.Instance()
+					.getMainBaseLocation(InformationManager.Instance().selfPlayer).getTilePosition());
+			Chokepoint secondChokePoint = InformationManager.Instance()
+					.getSecondChokePoint(InformationManager.Instance().selfPlayer);
 			BaseLocation baseLocation = InformationManager.Instance().getMainBaseLocation(MyBotModule.Broodwar.self());
 
 			for (Unit unit : MyBotModule.Broodwar.self().getUnits()) {
@@ -484,29 +601,41 @@ public class StrategyManager {
 			}
 
 			// 전투 유닛이 15개 이상 생산되었고, 적군 위치가 파악되었으면 총공격 모드로 전환
-			//2017-07-05
-			//System.out.println(MyBotModule.Broodwar.self().completedUnitCount(UnitType.Protoss_Zealot));
+			// 2017-07-05
+			// System.out.println(MyBotModule.Broodwar.self().completedUnitCount(UnitType.Protoss_Zealot));
 			if (MyBotModule.Broodwar.self().completedUnitCount(UnitType.Protoss_Zealot) >= atackTiming) {
-				//System.out.println(InformationManager.Instance().enemyPlayer+" "+InformationManager.Instance().enemyRace+" "+InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).size());
-				
-				if (InformationManager.Instance().enemyPlayer != null && InformationManager.Instance().enemyRace != Race.Unknown && InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).size() > 0) {
+				// System.out.println(InformationManager.Instance().enemyPlayer+"
+				// "+InformationManager.Instance().enemyRace+"
+				// "+InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).size());
+
+				if (InformationManager.Instance().enemyPlayer != null
+						&& InformationManager.Instance().enemyRace != Race.Unknown && InformationManager.Instance()
+								.getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).size() > 0) {
 					isFullScaleAttackStarted = true;
 				}
 			}
 		}
 		// 공격 모드가 되면, 모든 전투유닛들을 적군 Main BaseLocation 로 공격 가도록 합니다
 		else {
-			//std.cout << "enemy OccupiedBaseLocations : " << InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance()._enemy).size() << std.endl;
+			// std.cout << "enemy OccupiedBaseLocations : " <<
+			// InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance()._enemy).size()
+			// << std.endl;
 
-			Chokepoint secondChokePointEnemey = InformationManager.Instance().getSecondChokePoint(InformationManager.Instance().enemyPlayer);
+			Chokepoint secondChokePointEnemey = InformationManager.Instance()
+					.getSecondChokePoint(InformationManager.Instance().enemyPlayer);
 
-			if (InformationManager.Instance().enemyPlayer != null && InformationManager.Instance().enemyRace != Race.Unknown && InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).size() > 0) {
+			if (InformationManager.Instance().enemyPlayer != null
+					&& InformationManager.Instance().enemyRace != Race.Unknown && InformationManager.Instance()
+							.getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).size() > 0) {
 				// 공격 대상 지역 결정
 				BaseLocation targetBaseLocation = null;
 				double closestDistance = 100000000;
 
-				for (BaseLocation baseLocation : InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer)) {
-					double distance = BWTA.getGroundDistance(InformationManager.Instance().getMainBaseLocation(InformationManager.Instance().selfPlayer).getTilePosition(), baseLocation.getTilePosition());
+				for (BaseLocation baseLocation : InformationManager.Instance()
+						.getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer)) {
+					double distance = BWTA.getGroundDistance(InformationManager.Instance()
+							.getMainBaseLocation(InformationManager.Instance().selfPlayer).getTilePosition(),
+							baseLocation.getTilePosition());
 
 					if (distance < closestDistance) {
 						closestDistance = distance;
@@ -535,7 +664,8 @@ public class StrategyManager {
 							if (unit.isIdle()) {
 								if (!isOkAttackBaseLocation) {
 									commandUtil.attackMove(unit, secondChokePointEnemey.getPoint());
-									if (MyBotModule.Broodwar.getUnitsInRadius(secondChokePointEnemey.getPoint(), 250).size() >= 6) {
+									if (MyBotModule.Broodwar.getUnitsInRadius(secondChokePointEnemey.getPoint(), 250)
+											.size() >= 6) {
 										isOkAttackBaseLocation = true;
 									} else {
 										isOkAttackBaseLocation = false;
@@ -557,8 +687,11 @@ public class StrategyManager {
 		BaseLocation targetBaseLocation = null;
 		double closestDistance = 100000000;
 
-		for (BaseLocation baseLocation : InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer)) {
-			double distance = BWTA.getGroundDistance(InformationManager.Instance().getMainBaseLocation(InformationManager.Instance().selfPlayer).getTilePosition(), baseLocation.getTilePosition());
+		for (BaseLocation baseLocation : InformationManager.Instance()
+				.getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer)) {
+			double distance = BWTA.getGroundDistance(InformationManager.Instance()
+					.getMainBaseLocation(InformationManager.Instance().selfPlayer).getTilePosition(),
+					baseLocation.getTilePosition());
 
 			if (distance < closestDistance) {
 				closestDistance = distance;
