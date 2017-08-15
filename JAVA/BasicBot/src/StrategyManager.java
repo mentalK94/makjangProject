@@ -579,7 +579,10 @@ public class StrategyManager {
 						// System.out.println("enqueue supply provider "
 						// +
 						// InformationManager.Instance().getBasicSupplyProviderUnitType());
-						BuildManager.Instance().buildQueue.queueAsHighestPriority(new MetaType(InformationManager.Instance().getBasicSupplyProviderUnitType()), true);
+						if (MyBotModule.Broodwar.enemy().getRace() == Race.Zerg)
+							BuildManager.Instance().buildQueue.queueAsHighestPriority(new MetaType(InformationManager.Instance().getBasicSupplyProviderUnitType()),  BuildOrderItem.SeedPositionStrategy.MainBaseFrontYardThird, true);
+						else
+							BuildManager.Instance().buildQueue.queueAsHighestPriority(new MetaType(InformationManager.Instance().getBasicSupplyProviderUnitType()), true);
 					}
 				}
 			}
