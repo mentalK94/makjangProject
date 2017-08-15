@@ -28,6 +28,7 @@ public class StrategyManager {
 	public boolean isFullScaleAttackStarted; // private -> public 변경 by 노동환
 	public boolean isInitialBuildOrderFinished; // private -> public 변경 by 노동환
 	public BaseLocation mainBaseLocation = InformationManager.Instance().getMainBaseLocation(MyBotModule.Broodwar.self());
+	
 	// BasicBot 1.1 Patch Start ////////////////////////////////////////////////
 	// 경기 결과 파일 Save / Load 및 로그파일 Save 예제 추가를 위한 변수 및 메소드 선언
 
@@ -118,6 +119,13 @@ public class StrategyManager {
 			hunterUpdate();
 
 		mainBaseDefence();
+		bunkerAttack();
+	}
+
+	private void bunkerAttack() {
+		if(InformationManager.Instance().getUnitData(InformationManager.Instance().enemyPlayer).getNumUnits("Terran_Bunker") * 4 <= InformationManager.Instance().allZealotList.size()){
+			
+		}
 	}
 
 	// 일꾼 방어 로직
@@ -249,46 +257,26 @@ public class StrategyManager {
 		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe);
 		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe);
 		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe); // 프로브
-																							// 8
 
 		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Pylon, BuildOrderItem.SeedPositionStrategy.MainBaseLocation);
 
 		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe);
 		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe); // 프로브
-																							// 10
 
 		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway, BuildOrderItem.SeedPositionStrategy.MainBaseLocation);
 
 		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe);
 		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe); // 프로브
-																							// 12
 
 		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway, BuildOrderItem.SeedPositionStrategy.MainBaseLocation);
 
 		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe); // 프로브
-																							// 13
 		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Zealot); // 질럿
-																							// 1
-																							// (인구수
-																							// 15)
 		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Pylon, BuildOrderItem.SeedPositionStrategy.MainBaseLocation);
 		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe); // 프로브
-																							// 14
-																							// (인구수
-																							// 16)
 		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Zealot); // 질럿
-																							// 2
-																							// (인구수
-																							// 18)
-
 		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe); // 프로브
-																							// 15
-																							// (인구수
-																							// 19)
 		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Zealot); // 질럿
-																							// 3
-																							// (인구수
-																							// 21)
 
 		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway, BuildOrderItem.SeedPositionStrategy.MainBaseLocation);
 		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Assimilator, BuildOrderItem.SeedPositionStrategy.MainBaseLocation);
