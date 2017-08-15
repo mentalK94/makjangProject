@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.StringTokenizer;
 
 import bwapi.Position;
@@ -28,7 +29,7 @@ public class StrategyManager {
 	public boolean isFullScaleAttackStarted; // private -> public 변경 by 노동환
 	public boolean isInitialBuildOrderFinished; // private -> public 변경 by 노동환
 	public BaseLocation mainBaseLocation = InformationManager.Instance().getMainBaseLocation(MyBotModule.Broodwar.self());
-	
+
 	// BasicBot 1.1 Patch Start ////////////////////////////////////////////////
 	// 경기 결과 파일 Save / Load 및 로그파일 Save 예제 추가를 위한 변수 및 메소드 선언
 
@@ -108,6 +109,10 @@ public class StrategyManager {
 	public boolean isSecondGate = false;
 	public boolean isThirdGate = false;
 	public boolean isStartScout = false;
+	public boolean isElimination = false;
+	public boolean isFirstExpantion = false;
+	public boolean isReadyAttack = true;
+
 	/// 경기 진행 중 매 프레임마다 경기 전략 관련 로직을 실행합니다
 
 	public void update() {
@@ -119,33 +124,86 @@ public class StrategyManager {
 			hunterUpdate();
 
 		mainBaseDefence();
-		bunkerAttack();
+		//bunkerAttack();
+		elimination();
+		firstExpantion();
+		toggleAttackMode();
 	}
 
-	private void bunkerAttack() {
-		if(InformationManager.Instance().getUnitData(InformationManager.Instance().enemyPlayer).getNumUnits("Terran_Bunker") * 4 <= InformationManager.Instance().allZealotList.size()){
-			
+	public void toggleAttackMode() {
+		if (!isFirstExpantion)
+			return;
+		if (InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits("Protoss_Zealot") <= 12)
+			isReadyAttack = false;
+		else if (InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits("Protoss_Zealot") >= 24)
+			isReadyAttack = true;
+	}
+
+	public void firstExpantion() {
+		if (!isFirstExpantion && InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumCreatedUnits("Protoss_Zealot") >= 30 && InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits("Protoss_Zealot") >= 12) {
+			isReadyAttack = false;
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Nexus, BuildOrderItem.SeedPositionStrategy.FirstExpansionLocation);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway, false);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway, false);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway, false);
+			isFirstExpantion = true;
 		}
 	}
 
+	public void elimination() {
+		if (MyBotModule.Broodwar.getFrameCount() % 2000 != 0)
+			return;
+		if (!isElimination) {
+			if (InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits("Protoss_Zealot") >= 50) {
+				boolean noAttack = true;
+				for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
+					if (u.isAttacking()) {
+						noAttack = false;
+						break;
+					}
+				}
+				if (noAttack) {
+					isElimination = true;
+				}
+			}
+		}
+		if (isElimination) {
+			Random r = new Random();
+			int height = MyBotModule.Broodwar.mapHeight();
+			int width = MyBotModule.Broodwar.mapWidth();
+			for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
+				if (u.getType() == UnitType.Protoss_Zealot) {
+					commandUtil.attackMove(u, new TilePosition(r.nextInt(width), r.nextInt(height)).toPosition());
+				}
+			}
+		}
+	}
+
+	/*	private void bunkerAttack() {
+			if(InformationManager.Instance().getUnitData(InformationManager.Instance().enemyPlayer).getNumUnits("Terran_Bunker") * 4 <= InformationManager.Instance().allZealotList.size()){
+				
+			}
+		}
+	*/
 	// 일꾼 방어 로직
 	Unit targetMineral = null;
 	Position enemyPosition = null;
 	int mineralMoveCount = -3; // 상태값을 갖는다
+
 	public void mainBaseDefence() {
 		// mineralMoveCount가 0 보다 크면 적군에게서 가장 먼 미네랄로 모인다 
 		if (mineralMoveCount > 0) {
 			moveEnemy_NearMainBase_UsingProbe(targetMineral, 300);
 			mineralMoveCount--;
 			return;
-			
-		// mineralMoveCount가 0이 되면 공격 
+
+			// mineralMoveCount가 0이 되면 공격 
 		} else if (mineralMoveCount == 0) {
 			attackEnemy_NearMainBase_UsingProbe(enemyPosition, 300);
 			mineralMoveCount--;
 			return;
-			
-		// mineralMoveCount가 -1이면 공격 중이라는 뜻이다 
+
+			// mineralMoveCount가 -1이면 공격 중이라는 뜻이다 
 		} else if (mineralMoveCount == -1) {
 			Unit enemy = getEnemy_NearMainBase(300);
 			if (enemy != null) {
@@ -154,19 +212,19 @@ public class StrategyManager {
 			} else {
 				mineralMoveCount--;
 			}
-		
-		// mineralMoveCount가 -2이면 공격이 끝났으니 다시 복귀
+
+			// mineralMoveCount가 -2이면 공격이 끝났으니 다시 복귀
 		} else if (mineralMoveCount == -2) {
 			targetMineral = null;
 			enemyPosition = null;
 			stopProbe_NearMainBase(500);
 			mineralMoveCount--;
-			
-		// -3이 평시 상태. 계속 적이 공격오지는 않았는지 체크한다. 
+
+			// -3이 평시 상태. 계속 적이 공격오지는 않았는지 체크한다. 
 		} else {
 			if (MyBotModule.Broodwar.getFrameCount() % 4 != 0)
 				return;
-			
+
 			if (getUnderAttackedUnit_NearMainBase(300) != null) {
 				Unit enemy = getEnemy_NearMainBase(300);
 				if (enemy != null) {
@@ -568,7 +626,7 @@ public class StrategyManager {
 						// +
 						// InformationManager.Instance().getBasicSupplyProviderUnitType());
 						if (MyBotModule.Broodwar.enemy().getRace() == Race.Zerg)
-							BuildManager.Instance().buildQueue.queueAsHighestPriority(new MetaType(InformationManager.Instance().getBasicSupplyProviderUnitType()),  BuildOrderItem.SeedPositionStrategy.MainBaseFrontYardThird, true);
+							BuildManager.Instance().buildQueue.queueAsHighestPriority(new MetaType(InformationManager.Instance().getBasicSupplyProviderUnitType()), BuildOrderItem.SeedPositionStrategy.MainBaseFrontYardThird, true);
 						else
 							BuildManager.Instance().buildQueue.queueAsHighestPriority(new MetaType(InformationManager.Instance().getBasicSupplyProviderUnitType()), true);
 					}
@@ -604,92 +662,21 @@ public class StrategyManager {
 	public int atackTiming = 0;
 
 	public void executeCombat_hunter() {
-		if (atackTiming == 0) {
-			if (InformationManager.Instance().enemyRace == Race.Protoss)
-				atackTiming = 15;
-			else if (InformationManager.Instance().enemyRace == Race.Terran || InformationManager.Instance().enemyRace == Race.Zerg)
-				atackTiming = 3;
-		}
-		// 공격 모드가 아닐 때에는 전투유닛들을 아군 진영 길목에 집결시켜서 방어
-		if (isFullScaleAttackStarted == false) {
-			Chokepoint firstChokePoint = BWTA.getNearestChokepoint(InformationManager.Instance().getMainBaseLocation(InformationManager.Instance().selfPlayer).getTilePosition());
-			Chokepoint secondChokePoint = InformationManager.Instance().getSecondChokePoint(InformationManager.Instance().selfPlayer);
-			BaseLocation baseLocation = InformationManager.Instance().getMainBaseLocation(MyBotModule.Broodwar.self());
+		if (isElimination)
+			return;
 
-			for (Unit unit : MyBotModule.Broodwar.self().getUnits()) {
-				if (unit.getType() == UnitType.Protoss_Zealot && unit.isIdle()) {
-					commandUtil.attackMove(unit, firstChokePoint.getPoint());
-				}
-			}
-
-			// 전투 유닛이 15개 이상 생산되었고, 적군 위치가 파악되었으면 총공격 모드로 전환
-			// 2017-07-05
-			// System.out.println(MyBotModule.Broodwar.self().completedUnitCount(UnitType.Protoss_Zealot));
-			if (MyBotModule.Broodwar.self().completedUnitCount(UnitType.Protoss_Zealot) >= atackTiming) {
-				// System.out.println(InformationManager.Instance().enemyPlayer+"
-				// "+InformationManager.Instance().enemyRace+"
-				// "+InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).size());
-
-				if (InformationManager.Instance().enemyPlayer != null && InformationManager.Instance().enemyRace != Race.Unknown && InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).size() > 0) {
-					isFullScaleAttackStarted = true;
+		if (!isReadyAttack){
+			for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
+				if (u.getType() == UnitType.Protoss_Zealot && u.isIdle()) {
+					commandUtil.attackMove(u,InformationManager.Instance().getSecondChokePoint(MyBotModule.Broodwar.self()).getPoint());
 				}
 			}
 		}
-		// 공격 모드가 되면, 모든 전투유닛들을 적군 Main BaseLocation 로 공격 가도록 합니다
-		else {
-			// std.cout << "enemy OccupiedBaseLocations : " <<
-			// InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance()._enemy).size()
-			// << std.endl;
 
-			Chokepoint secondChokePointEnemey = InformationManager.Instance().getSecondChokePoint(InformationManager.Instance().enemyPlayer);
-
-			if (InformationManager.Instance().enemyPlayer != null && InformationManager.Instance().enemyRace != Race.Unknown && InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).size() > 0) {
-				// 공격 대상 지역 결정
-				BaseLocation targetBaseLocation = null;
-				double closestDistance = 100000000;
-
-				for (BaseLocation baseLocation : InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer)) {
-					double distance = BWTA.getGroundDistance(InformationManager.Instance().getMainBaseLocation(InformationManager.Instance().selfPlayer).getTilePosition(), baseLocation.getTilePosition());
-
-					if (distance < closestDistance) {
-						closestDistance = distance;
-						targetBaseLocation = baseLocation;
-					}
-				}
-
-				// 2017-07-10
-				boolean isOkAttackBaseLocation = false;
-
-				if (targetBaseLocation != null) {
-					for (Unit unit : MyBotModule.Broodwar.self().getUnits()) {
-						// 건물은 제외
-						if (unit.getType().isBuilding()) {
-							continue;
-						}
-						// 모든 일꾼은 제외
-						if (unit.getType().isWorker()) {
-							continue;
-						}
-						// 탱크 시즈모드 해제
-						if (unit.getType() == UnitType.Terran_Siege_Tank_Siege_Mode) {
-							unit.unsiege();
-						}
-						if (unit.canAttack() || unit.canRepair()) {
-							if (unit.isIdle()) {
-								if (!isOkAttackBaseLocation) {
-									commandUtil.attackMove(unit, secondChokePointEnemey.getPoint());
-									if (MyBotModule.Broodwar.getUnitsInRadius(secondChokePointEnemey.getPoint(), 250).size() >= 6) {
-										isOkAttackBaseLocation = true;
-									} else {
-										isOkAttackBaseLocation = false;
-										commandUtil.attackMove(unit, secondChokePointEnemey.getPoint());
-									}
-								} else {
-									commandUtil.attackMove(unit, targetBaseLocation.getPoint());
-								}
-							}
-						}
-					}
+		if (InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits("Protoss_Zealot") >= 12 && InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).size() > 0) {
+			for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
+				if (u.getType() == UnitType.Protoss_Zealot && u.isIdle()) {
+					commandUtil.attackMove(u, InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).get(0).getPoint());
 				}
 			}
 		}
