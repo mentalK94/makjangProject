@@ -7,14 +7,12 @@ import java.util.StringTokenizer;
 
 import bwapi.Position;
 import bwapi.Race;
-import bwapi.TechType;
 import bwapi.TilePosition;
 import bwapi.Unit;
 import bwapi.UnitType;
-import bwapi.UpgradeType;
 import bwta.BWTA;
 import bwta.BaseLocation;
-import bwta.Chokepoint;
+import bwta.Region;
 
 /// 상황을 판단하여, 정찰, 빌드, 공격, 방어 등을 수행하도록 총괄 지휘를 하는 class <br>
 /// InformationManager 에 있는 정보들로부터 상황을 판단하고, <br>
@@ -85,6 +83,8 @@ public class StrategyManager {
 		}
 
 		mainBaseLocation = InformationManager.Instance().getMainBaseLocation(MyBotModule.Broodwar.self());
+		expantionList.add(InformationManager.Instance().getMainBaseLocation(MyBotModule.Broodwar.self()));
+		expantionList.add(InformationManager.Instance().getFirstExpansionLocation(MyBotModule.Broodwar.self()));
 	}
 
 	/// 경기가 종료될 때 일회적으로 전략 결과 정리 관련 로직을 실행합니다
@@ -135,10 +135,32 @@ public class StrategyManager {
 		}
 
 		mainBaseDefence();
-		//bunkerAttack();
 		elimination();
 		firstExpantion();
 		toggleAttackMode();
+		checkForge();
+		unlimitedExpantion();
+	}
+	
+	ArrayList<BaseLocation> expantionList = new ArrayList<>();
+	public void unlimitedExpantion(){
+		if (MyBotModule.Broodwar.getFrameCount() % 4000 != 0)
+			return;
+		if (!isFirstExpantion)
+			return;
+		if(InformationManager.Instance().selfPlayer.minerals() < 400)
+			return;
+		for(BaseLocation r : BWTA.getBaseLocations()){
+			if(expantionList.contains(r))
+				continue;
+			ConstructionManager.Instance().addConstructionTask(UnitType.Protoss_Nexus, ConstructionPlaceFinder.Instance().getBuildLocationNear(UnitType.Protoss_Nexus, r.getTilePosition()));
+			ConstructionManager.Instance().addConstructionTask(UnitType.Protoss_Pylon, ConstructionPlaceFinder.Instance().getBuildLocationNear(UnitType.Protoss_Pylon, r.getTilePosition()));
+			ConstructionManager.Instance().addConstructionTask(UnitType.Protoss_Photon_Cannon, ConstructionPlaceFinder.Instance().getBuildLocationNear(UnitType.Protoss_Photon_Cannon, r.getTilePosition()));
+			ConstructionManager.Instance().addConstructionTask(UnitType.Protoss_Photon_Cannon, ConstructionPlaceFinder.Instance().getBuildLocationNear(UnitType.Protoss_Photon_Cannon, r.getTilePosition()));
+			ConstructionManager.Instance().addConstructionTask(UnitType.Protoss_Photon_Cannon, ConstructionPlaceFinder.Instance().getBuildLocationNear(UnitType.Protoss_Photon_Cannon, r.getTilePosition()));
+			expantionList.add(r);
+			return;
+		}
 	}
 
 	public void toggleAttackMode() {
@@ -149,15 +171,31 @@ public class StrategyManager {
 		else if (InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits("Protoss_Zealot") >= 24)
 			isReadyAttack = true;
 	}
+	
+	public void checkForge(){
+		if (!isFirstExpantion)
+			return;
+		if (InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits("Protoss_Forge") < 1 && BuildManager.Instance().buildQueue.getItemCount(UnitType.Protoss_Forge) == 0){
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Forge, true);
+		}
+	}
 
 	public void firstExpantion() {
 		if (!isFirstExpantion && InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumCreatedUnits("Protoss_Zealot") >= 30 && InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits("Protoss_Zealot") >= 12) {
 			isReadyAttack = false;
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Nexus, BuildOrderItem.SeedPositionStrategy.FirstExpansionLocation);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Forge, false);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway, false);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway, false);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway, false);
-			maxWorkerCount = 50;
+			
+			
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Pylon, BuildOrderItem.SeedPositionStrategy.FirstExpansionLocation, false);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Photon_Cannon, BuildOrderItem.SeedPositionStrategy.FirstExpansionLocation, false);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Photon_Cannon, BuildOrderItem.SeedPositionStrategy.FirstExpansionLocation , false);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Photon_Cannon, BuildOrderItem.SeedPositionStrategy.FirstExpansionLocation, false);
+			
+			maxWorkerCount = 100;
 			isFirstExpantion = true;
 		}
 	}
