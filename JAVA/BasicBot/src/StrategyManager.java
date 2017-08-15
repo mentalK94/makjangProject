@@ -164,7 +164,7 @@ public class StrategyManager {
 				if (enemy != null) {
 					enemyPosition = enemy.getPosition();
 					targetMineral = getMineral_MostFarFrom_Enemy(enemy);
-					mineralMoveCount = 50; // 50프레임동안 유닛을 모은다. 
+					mineralMoveCount = 60; // 50프레임동안 유닛을 모은다. 
 				}
 			}
 		}
@@ -200,7 +200,7 @@ public class StrategyManager {
 		}
 		for (Unit worker : MyBotModule.Broodwar.self().getUnits()) {
 			if (worker.getType() == UnitType.Protoss_Probe && BWTA.getGroundDistance(worker.getTilePosition(), mainBaseLocation.getTilePosition()) <= radius) {
-				commandUtil.move(worker, targetMineral.getPosition());
+				commandUtil.rightClick(worker, targetMineral);
 			}
 		}
 	}
