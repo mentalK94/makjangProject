@@ -73,9 +73,12 @@ public class StrategyManager {
 
 		// BasicBot 1.1 Patch End
 		// //////////////////////////////////////////////////
-		if (MyBotModule.Broodwar.mapFileName().toLowerCase().indexOf("hunter") != -1)
+		if (MyBotModule.Broodwar.mapFileName().toLowerCase().indexOf("hunter") != -1) {
 			setHunterInitialBuildOrder();
-		// setInitialBuildOrder();
+			maxWorkerCount = 18;
+		} else {
+			maxWorkerCount = 12;
+		}
 		for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
 			if (u.getType() == UnitType.Protoss_Nexus)
 				nexus = u;
@@ -113,6 +116,8 @@ public class StrategyManager {
 	public boolean isFirstExpantion = false;
 	public boolean isReadyAttack = true;
 
+	public int maxWorkerCount;
+
 	/// 경기 진행 중 매 프레임마다 경기 전략 관련 로직을 실행합니다
 
 	public void update() {
@@ -146,6 +151,7 @@ public class StrategyManager {
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway, false);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway, false);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway, false);
+			maxWorkerCount = 50;
 			isFirstExpantion = true;
 		}
 	}
@@ -350,7 +356,7 @@ public class StrategyManager {
 			isInitialBuildOrderFinished = true;
 
 		if (isInitialBuildOrderFinished) {
-			executeWorkerTraining_hunter();
+			executeWorkerTraining();
 			executeSupplyManagement();
 			executeBasicCombatUnitTraining();
 			executeCombat_hunter();
@@ -465,41 +471,6 @@ public class StrategyManager {
 		}
 	}
 
-	public void executeWorkerTraining_hunter() {
-
-		// InitialBuildOrder 진행중에는 아무것도 하지 않습니다
-		if (isInitialBuildOrderFinished == false) {
-			return;
-		}
-
-		if (MyBotModule.Broodwar.self().minerals() >= 150) {
-			// workerCount = 현재 일꾼 수 + 생산중인 일꾼 수
-			int workerCount = MyBotModule.Broodwar.self().allUnitCount(UnitType.Protoss_Probe);
-
-			for (Unit unit : MyBotModule.Broodwar.self().getUnits()) {
-				if (unit.getType().isResourceDepot()) {
-					if (unit.isTraining()) {
-						workerCount += unit.getTrainingQueue().size();
-					}
-				}
-			}
-
-			if (workerCount <= 18) {
-				for (Unit unit : MyBotModule.Broodwar.self().getUnits()) {
-					if (unit.getType().isResourceDepot()) {
-						if (unit.isTraining() == false || unit.getLarva().size() > 0) {
-							// 빌드큐에 일꾼 생산이 1개는 있도록 한다
-							if (BuildManager.Instance().buildQueue.getItemCount(InformationManager.Instance().getWorkerType(), null) == 0) {
-								// std.cout + "worker enqueue" + std.endl;
-								BuildManager.Instance().buildQueue.queueAsLowestPriority(new MetaType(InformationManager.Instance().getWorkerType()), false);
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
 	// 일꾼 계속 추가 생산
 	public void executeWorkerTraining() {
 
@@ -520,7 +491,7 @@ public class StrategyManager {
 				}
 			}
 
-			if (workerCount < 13) {
+			if (workerCount < maxWorkerCount) {
 				for (Unit unit : MyBotModule.Broodwar.self().getUnits()) {
 					if (unit.getType().isResourceDepot()) {
 						if (unit.isTraining() == false || unit.getLarva().size() > 0) {
@@ -665,18 +636,19 @@ public class StrategyManager {
 		if (isElimination)
 			return;
 
-		if (!isReadyAttack){
+		if (!isReadyAttack) {
 			for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
 				if (u.getType() == UnitType.Protoss_Zealot && u.isIdle()) {
-					commandUtil.attackMove(u,InformationManager.Instance().getSecondChokePoint(MyBotModule.Broodwar.self()).getPoint());
+					u.attack(InformationManager.Instance().getSecondChokePoint(MyBotModule.Broodwar.self()).getPoint());
 				}
 			}
+			return;
 		}
 
 		if (InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits("Protoss_Zealot") >= 12 && InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).size() > 0) {
 			for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
 				if (u.getType() == UnitType.Protoss_Zealot && u.isIdle()) {
-					commandUtil.attackMove(u, InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).get(0).getPoint());
+					u.attack(InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).get(0).getPoint());
 				}
 			}
 		}

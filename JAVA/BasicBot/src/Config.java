@@ -38,7 +38,7 @@ public class Config {
 	
 	/// 로컬에서 게임을 실행할 때 FrameSkip (코드 제출 후 서버에서 게임을 실행할 때는 서버 설정을 사용함)<br>
 	/// frameskip을 늘리면 화면 표시도 업데이트 안하므로 훨씬 빠릅니다
-    public static int SetFrameSkip = 5;
+    public static int SetFrameSkip = 0;
     
     /// 로컬에서 게임을 실행할 때 사용자 키보드/마우스 입력 허용 여부 (코드 제출 후 서버에서 게임을 실행할 때는 서버 설정을 사용함)	
     public static boolean EnableUserInput = true;
@@ -83,14 +83,14 @@ public class Config {
 	public static boolean DrawMapGrid = false;
 
 	/// 화면 표시 여부 - 유닛 HitPoint
-	public static boolean DrawUnitHealthBars = false;
+	public static boolean DrawUnitHealthBars = true;
 	/// 화면 표시 여부 - 유닛 통계
-	public static boolean DrawEnemyUnitInfo = false;
+	public static boolean DrawEnemyUnitInfo = true;
 	/// 화면 표시 여부 - 유닛 ~ Target 간 직선
 	public static boolean DrawUnitTargetInfo = false;
 
 	/// 화면 표시 여부 - 빌드 큐
-	public static boolean DrawProductionInfo = false;
+	public static boolean DrawProductionInfo = true;
 
 	/// 화면 표시 여부 - 건물 Construction 상황
 	public static boolean DrawBuildingInfo = false;
