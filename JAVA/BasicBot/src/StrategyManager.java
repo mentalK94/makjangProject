@@ -121,12 +121,18 @@ public class StrategyManager {
 	/// 경기 진행 중 매 프레임마다 경기 전략 관련 로직을 실행합니다
 
 	public void update() {
-		if (MyBotModule.Broodwar.mapFileName().toLowerCase().indexOf("spirit") != -1)
-			fightingSpiritUpdate();
-		else if (MyBotModule.Broodwar.mapFileName().toLowerCase().indexOf("temple") != -1)
-			lostTempleUpdate();
-		else if (MyBotModule.Broodwar.mapFileName().toLowerCase().indexOf("hunter") != -1)
+		if(InformationManager.Instance().enemyRace == Race.Protoss){
 			hunterUpdate();
+		}
+		else if (MyBotModule.Broodwar.mapFileName().toLowerCase().indexOf("spirit") != -1){
+			fightingSpiritUpdate();
+		}
+		else if (MyBotModule.Broodwar.mapFileName().toLowerCase().indexOf("temple") != -1){
+			lostTempleUpdate();
+		}
+		else if (MyBotModule.Broodwar.mapFileName().toLowerCase().indexOf("hunter") != -1){
+			hunterUpdate();
+		}
 
 		mainBaseDefence();
 		//bunkerAttack();
@@ -343,7 +349,11 @@ public class StrategyManager {
 		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Zealot); // 질럿
 
 		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway, BuildOrderItem.SeedPositionStrategy.MainBaseLocation);
-		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Assimilator, BuildOrderItem.SeedPositionStrategy.MainBaseLocation);
+		
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Pylon, BuildOrderItem.SeedPositionStrategy.MainBaseLocation);
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Probe); // 프로브
+		BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway, BuildOrderItem.SeedPositionStrategy.MainBaseLocation);
+		
 
 	}
 
