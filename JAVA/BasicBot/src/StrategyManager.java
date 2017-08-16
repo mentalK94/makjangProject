@@ -771,7 +771,7 @@ public class StrategyManager {
 
 		System.out.println("111111111");
 		if (InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits("Protoss_Zealot") >= firstAttackStart
-				&& (InformationManager.Instance().getMainBaseLocation(InformationManager.Instance().enemyPlayer) != null || enemyBuilding != null)) {
+				&& (InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).size() != 0 || enemyBuilding != null)) {
 
 			BaseLocation targetBaseLocation = null;
 			double longDistance = 0;
@@ -823,10 +823,11 @@ public class StrategyManager {
 				isEnterBrock++;;
 			}
 
+			System.out.println("6666666");
 			if (isEnterBrock >= 1000) {
 				double min = 99999999;
 				for (Unit u : MyBotModule.Broodwar.enemy().getUnits()) {
-					if (u.getType() == UnitType.Terran_Supply_Depot) {
+					if (u.getType() == UnitType.Buildings) {
 						double dd = BWTA.getGroundDistance(u.getTilePosition(), InformationManager.Instance().getMainBaseLocation(InformationManager.Instance().selfPlayer).getTilePosition());
 						if (dd < min) {
 							min = dd;
