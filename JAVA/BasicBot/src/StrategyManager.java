@@ -62,6 +62,8 @@ public class StrategyManager {
 	}
 
 	public boolean isHunter = false;
+	int halfheight = MyBotModule.Broodwar.mapHeight()/2;
+	int  halfwidth = MyBotModule.Broodwar.mapWidth()/2;
 
 	/// 경기가 시작될 때 일회적으로 전략 초기 세팅 관련 로직을 실행합니다
 	public void onStart() {
@@ -171,34 +173,62 @@ public class StrategyManager {
 
 	ArrayList<BaseLocation> expantionList = new ArrayList<>();
 
+	int currentNexus;
+	boolean isUnlimitedExpantion = false;
+	TilePosition expantionPosition =null;
+
 	public void unlimitedExpantion() {
-		if (MyBotModule.Broodwar.getFrameCount() % 4000 != 0)
+		if (MyBotModule.Broodwar.getFrameCount() % 401 != 0)
 			return;
 		if (!isFirstExpantion)
 			return;
-		if (InformationManager.Instance().selfPlayer.minerals() < 350)
-			return;
-		for (BaseLocation r : BWTA.getBaseLocations()) {
-			if (expantionList.contains(r))
-				continue;
-			ConstructionManager.Instance().addConstructionTask(UnitType.Protoss_Nexus, ConstructionPlaceFinder.Instance().getBuildLocationNear(UnitType.Protoss_Nexus, r.getTilePosition()));
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway, false);
-			//ConstructionManager.Instance().addConstructionTask(UnitType.Protoss_Pylon, ConstructionPlaceFinder.Instance().getBuildLocationNear(UnitType.Protoss_Pylon, r.getTilePosition()));
-			//ConstructionManager.Instance().addConstructionTask(UnitType.Protoss_Photon_Cannon, ConstructionPlaceFinder.Instance().getBuildLocationNear(UnitType.Protoss_Photon_Cannon, r.getTilePosition()));
-			//ConstructionManager.Instance().addConstructionTask(UnitType.Protoss_Photon_Cannon, ConstructionPlaceFinder.Instance().getBuildLocationNear(UnitType.Protoss_Photon_Cannon, r.getTilePosition()));
-			//ConstructionManager.Instance().addConstructionTask(UnitType.Protoss_Photon_Cannon, ConstructionPlaceFinder.Instance().getBuildLocationNear(UnitType.Protoss_Photon_Cannon, r.getTilePosition()));
-			expantionList.add(r);
-			return;
+		if (InformationManager.Instance().selfPlayer.minerals() >= 350) {
+			isUnlimitedExpantion = true;
+			currentNexus = InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits(UnitType.Protoss_Nexus.toString());
+		}
+		if (isUnlimitedExpantion) {
+			for(ConstructionTask b : ConstructionManager.Instance().constructionQueue) {
+				if(b.getType() == UnitType.Protoss_Nexus)
+					return;
+			}
+			if (InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits(UnitType.Protoss_Nexus.toString()) <= currentNexus) {
+				for (BaseLocation r : BWTA.getBaseLocations()) {
+					if (InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().selfPlayer).contains(r))
+						continue;
+					if (InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).contains(r))
+						continue;
+					expantionPosition = r.getTilePosition();
+					ConstructionManager.Instance().addConstructionTask(UnitType.Protoss_Nexus, expantionPosition);
+					//ConstructionManager.Instance().addConstructionTask(UnitType.Protoss_Pylon, ConstructionPlaceFinder.Instance().getBuildLocationNear(UnitType.Protoss_Pylon, r.getTilePosition()));
+					//ConstructionManager.Instance().addConstructionTask(UnitType.Protoss_Photon_Cannon, ConstructionPlaceFinder.Instance().getBuildLocationNear(UnitType.Protoss_Photon_Cannon, r.getTilePosition()));
+					//ConstructionManager.Instance().addConstructionTask(UnitType.Protoss_Photon_Cannon, ConstructionPlaceFinder.Instance().getBuildLocationNear(UnitType.Protoss_Photon_Cannon, r.getTilePosition()));
+					//ConstructionManager.Instance().addConstructionTask(UnitType.Protoss_Photon_Cannon, ConstructionPlaceFinder.Instance().getBuildLocationNear(UnitType.Protoss_Photon_Cannon, r.getTilePosition()));
+					return;
+				}
+			} 
+			if(InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits(UnitType.Protoss_Nexus.toString()) > currentNexus){
+				BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway, false);
+				isUnlimitedExpantion = false;
+			}
 		}
 	}
 
 	public void toggleAttackMode() {
+		if (MyBotModule.Broodwar.getFrameCount() % 23 != 0)
+			return;
 		if (!isFirstExpantion)
 			return;
 
-		if (InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits("Protoss_Zealot") <= toggleAttackMode_stopAttack)
+		int idle = 0;
+		for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
+			if (u.getType() == UnitType.Protoss_Zealot && !u.isAttacking() && !u.isUnderAttack()) {
+				if(BWTA.getGroundDistance(u.getTilePosition(), new TilePosition(halfwidth, halfheight) )<= 1000)
+					idle ++;
+			}
+		}
+		if (idle <= toggleAttackMode_stopAttack)
 			isReadyAttack = false;
-		else if (InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits("Protoss_Zealot") >= toggleAttackMode_startAttack)
+		else if (idle >= toggleAttackMode_startAttack)
 			isReadyAttack = true;
 	}
 
@@ -216,9 +246,6 @@ public class StrategyManager {
 			isReadyAttack = false;
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Nexus, BuildOrderItem.SeedPositionStrategy.FirstExpansionLocation);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Assimilator);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Forge, false);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway, false);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway, false);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway, false);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Cybernetics_Core, false);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Citadel_of_Adun, false);
@@ -235,7 +262,7 @@ public class StrategyManager {
 	}
 
 	public void elimination() {
-		if (MyBotModule.Broodwar.getFrameCount() % 2000 != 0)
+		if (MyBotModule.Broodwar.getFrameCount() % 1501 != 0)
 			return;
 		if (!isElimination) {
 			if (InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits("Protoss_Zealot") >= 50) {
@@ -308,7 +335,7 @@ public class StrategyManager {
 
 			// -3이 평시 상태. 계속 적이 공격오지는 않았는지 체크한다. 
 		} else {
-			if (MyBotModule.Broodwar.getFrameCount() % 4 != 0)
+			if (MyBotModule.Broodwar.getFrameCount() % 5 != 0)
 				return;
 
 			if (getUnderAttackedUnit_NearMainBase(300) != null) {
@@ -584,7 +611,7 @@ public class StrategyManager {
 	}
 
 	public void getMaxWorker() {
-		if (MyBotModule.Broodwar.getFrameCount() % 500 != 0)
+		if (MyBotModule.Broodwar.getFrameCount() % 501 != 0)
 			return;
 		maxWorkerCount = InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits("Protoss_Nexus") * 18;
 	}
@@ -654,7 +681,7 @@ public class StrategyManager {
 		}
 
 		// 1초에 한번만 실행
-		if (MyBotModule.Broodwar.getFrameCount() % 24 != 0) {
+		if (MyBotModule.Broodwar.getFrameCount() % 27 != 0) {
 			return;
 		}
 
@@ -730,11 +757,12 @@ public class StrategyManager {
 	Position enemyBuilding = null;
 
 	public void executeBasicCombatUnitTraining() {
-
-		// InitialBuildOrder 진행중에는 아무것도 하지 않습니다
-		if (isInitialBuildOrderFinished == false) {
+		if(isUnlimitedExpantion)
 			return;
-		}
+		// InitialBuildOrder 진행중에는 아무것도 하지 않습니다
+/*		if (isInitialBuildOrderFinished == false) {
+			return;
+		}*/
 
 		// 기본 병력 추가 훈련
 		if (MyBotModule.Broodwar.self().minerals() >= 100 && MyBotModule.Broodwar.self().supplyUsed() < 390) {
@@ -755,10 +783,12 @@ public class StrategyManager {
 		if (!isReadyAttack) {
 			for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
 				if (u.getType() == UnitType.Protoss_Zealot && u.isIdle()) {
-					u.attack(InformationManager.Instance().getSecondChokePoint(MyBotModule.Broodwar.self()).getPoint());
+					u.attack(new TilePosition(halfwidth, halfheight).toPosition());
 				}
 			}
 			return;
+		} else if (isFirstExpantion) {
+			isEnterBrock = 0;
 		}
 
 		if (enemyBuilding == null) {
@@ -812,8 +842,10 @@ public class StrategyManager {
 				;
 			}
 
-			//System.out.println("6666666");
-			if (isEnterBrock >= 550) {
+			int max = 550;
+			if (isHunter)
+				max = 3000;
+			if (isEnterBrock >= max) {
 				if (nearSupply == null) {
 					double min = 99999999;
 					for (Unit u : MyBotModule.Broodwar.enemy().getUnits()) {
@@ -840,7 +872,7 @@ public class StrategyManager {
 						}
 					}
 				}
-
+				return;
 			}
 		}
 		if (isHunter) {

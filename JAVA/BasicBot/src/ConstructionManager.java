@@ -17,7 +17,7 @@ public class ConstructionManager {
 	/// 건설 대상 장소가 미개척 장소인 경우 건설 일꾼을 이동시켜 결국 건설이 시작되게 하고, <br>
 	/// 건설 일꾼이 도중에 죽는 경우 다른 건설 일꾼을 지정하여 건설을 수행하게 하기 위해<br>
 	/// Construction Task 들의 목록을 constructionQueue 로 유지합니다
-	private Vector<ConstructionTask> constructionQueue = new Vector<ConstructionTask>();
+	public Vector<ConstructionTask> constructionQueue = new Vector<ConstructionTask>();
 	
 	CommandUtil commandUtil = new CommandUtil();
 	
