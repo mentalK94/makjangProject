@@ -7,9 +7,11 @@ import java.util.StringTokenizer;
 
 import bwapi.Position;
 import bwapi.Race;
+import bwapi.TechType;
 import bwapi.TilePosition;
 import bwapi.Unit;
 import bwapi.UnitType;
+import bwapi.UpgradeType;
 import bwta.BWTA;
 import bwta.BaseLocation;
 import bwta.Region;
@@ -118,6 +120,7 @@ public class StrategyManager {
 	public Unit firstGate = null;
 	public Unit secondGate = null;
 	public Unit thirdGate = null;
+	public Unit fourthGate = null;
 	public Unit idleProbe = null;
 
 	public boolean isFirstPylon = false;
@@ -155,6 +158,7 @@ public class StrategyManager {
 		toggleAttackMode();
 		//checkForge();
 		unlimitedExpantion();
+		getMaxWorker();
 	}
 
 	ArrayList<BaseLocation> expantionList = new ArrayList<>();
@@ -203,10 +207,14 @@ public class StrategyManager {
 		if (!isFirstExpantion && InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumCreatedUnits("Protoss_Zealot") >= firstExpantion_createdZealot && InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits("Protoss_Zealot") >= firstExpantion_aliveZealot) {
 			isReadyAttack = false;
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Nexus, BuildOrderItem.SeedPositionStrategy.FirstExpansionLocation);
-			//BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Forge, false);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Assimilator);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Forge, false);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway, false);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway, false);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway, false);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Cybernetics_Core, false);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Citadel_of_Adun, false);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UpgradeType.Leg_Enhancements, false);
 
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Pylon, BuildOrderItem.SeedPositionStrategy.FirstExpansionLocation, false);
 			//BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Photon_Cannon, BuildOrderItem.SeedPositionStrategy.FirstExpansionLocation, false);
@@ -437,7 +445,7 @@ public class StrategyManager {
 		if (secondGate != null)
 			ScoutManager.Instance().assignScoutIfNeeded();
 
-		if (thirdGate != null)
+		if (fourthGate != null)
 			isInitialBuildOrderFinished = true;
 
 		if (isInitialBuildOrderFinished) {
@@ -447,6 +455,23 @@ public class StrategyManager {
 			executeCombat(15);
 		}
 
+		// GateWay 찾기
+		if (firstGate == null)
+			for (Unit u : MyBotModule.Broodwar.self().getUnits())
+				if (u.getType() == UnitType.Protoss_Gateway)
+					firstGate = u;
+		if (firstGate != null && secondGate == null)
+			for (Unit u : MyBotModule.Broodwar.self().getUnits())
+				if (u.getType() == UnitType.Protoss_Gateway && u.getID() != firstGate.getID())
+					secondGate = u;
+		if (secondGate != null && thirdGate == null)
+			for (Unit u : MyBotModule.Broodwar.self().getUnits())
+				if (u.getType() == UnitType.Protoss_Gateway && u.getID() != firstGate.getID() && u.getID() != secondGate.getID())
+					thirdGate = u;
+		if (thirdGate != null && fourthGate == null)
+			for (Unit u : MyBotModule.Broodwar.self().getUnits())
+				if (u.getType() == UnitType.Protoss_Gateway && u.getID() != firstGate.getID() && u.getID() != secondGate.getID() && u.getID() != thirdGate.getID())
+					fourthGate = u;
 	}
 
 	public void lostTempleUpdate() {
@@ -542,6 +567,12 @@ public class StrategyManager {
 			executeCombat(1);
 		}
 	}
+	
+	public void getMaxWorker() {
+		if (MyBotModule.Broodwar.getFrameCount() % 500 != 0)
+			return;
+		maxWorkerCount = InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits("Protoss_Nexus") * 18;
+	}
 
 	// 일꾼 계속 추가 생산
 	public void executeWorkerTraining() {
@@ -551,7 +582,7 @@ public class StrategyManager {
 			return;
 		}
 
-		if (MyBotModule.Broodwar.self().minerals() >= 150) {
+		if (MyBotModule.Broodwar.self().minerals() >= 50) {
 			// workerCount = 현재 일꾼 수 + 생산중인 일꾼 수
 			int workerCount = MyBotModule.Broodwar.self().allUnitCount(UnitType.Protoss_Probe);
 
