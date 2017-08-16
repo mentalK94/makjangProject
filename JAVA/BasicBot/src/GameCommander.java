@@ -79,8 +79,8 @@ public class GameCommander {
 	/// 유닛(건물/지상유닛/공중유닛)이 Create 될 때 발생하는 이벤트를 처리합니다
 	public void onUnitCreate(Unit unit) { 
 		InformationManager.Instance().onUnitCreate(unit);
-		if(unit.getType() == UnitType.Protoss_Zealot)
-			InformationManager.Instance().allZealotList.add(unit);
+		if(unit.getType() == UnitType.Protoss_Gateway)
+			InformationManager.Instance().gatewayList.add(unit);
 	}
 
 	///  유닛(건물/지상유닛/공중유닛)이 Destroy 될 때 발생하는 이벤트를 처리합니다
@@ -89,8 +89,8 @@ public class GameCommander {
 		WorkerManager.Instance().onUnitDestroy(unit);
 
 		InformationManager.Instance().onUnitDestroy(unit); 
-		if(unit.getType() == UnitType.Protoss_Zealot)
-			InformationManager.Instance().allZealotList.remove(unit);
+		if(unit.getType() == UnitType.Protoss_Gateway)
+			InformationManager.Instance().gatewayList.remove(unit);
 	}
 	
 	/// 유닛(건물/지상유닛/공중유닛)이 Morph 될 때 발생하는 이벤트를 처리합니다<br>
@@ -179,4 +179,5 @@ public class GameCommander {
 	/// 다른 플레이어로부터 텍스트를 전달받았을 때 발생하는 이벤트를 처리합니다
 	public void onReceiveText(Player player, String text){
 	}
+	
 }

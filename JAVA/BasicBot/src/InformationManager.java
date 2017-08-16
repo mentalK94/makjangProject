@@ -30,7 +30,7 @@ public class InformationManager {
 	public Player enemyPlayer;		///< 아군 Player의 종족		
 	public Race selfRace;			///< 적군 Player		
 	public Race enemyRace;			///< 적군 Player의 종족  
-	public ArrayList<Unit> allZealotList = new ArrayList<Unit>();
+	public ArrayList<Unit> gatewayList = new ArrayList<Unit>();
 
 	/// 해당 Player의 주요 건물들이 있는 BaseLocation. <br>
 	/// 처음에는 StartLocation 으로 지정. mainBaseLocation 내 모든 건물이 파괴될 경우 재지정<br>
