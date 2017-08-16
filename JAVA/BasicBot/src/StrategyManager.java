@@ -60,6 +60,8 @@ public class StrategyManager {
 		isFullScaleAttackStarted = false;
 		isInitialBuildOrderFinished = false;
 	}
+	
+	public boolean isHunter = false;
 
 	/// 경기가 시작될 때 일회적으로 전략 초기 세팅 관련 로직을 실행합니다
 	public void onStart() {
@@ -73,6 +75,9 @@ public class StrategyManager {
 
 		// BasicBot 1.1 Patch End
 		// //////////////////////////////////////////////////
+		if(MyBotModule.Broodwar.mapFileName().toLowerCase().indexOf("hunter") != -1 ) {
+			isHunter = true;
+		}
 		if (MyBotModule.Broodwar.mapFileName().toLowerCase().indexOf("hunter") != -1 || InformationManager.Instance().enemyRace == Race.Protoss) {
 			setHunterInitialBuildOrder();
 			maxWorkerCount = 18;
@@ -139,6 +144,8 @@ public class StrategyManager {
 
 	public int maxWorkerCount;
 
+	public int isEnterBrock = 0;
+
 	/// 경기 진행 중 매 프레임마다 경기 전략 관련 로직을 실행합니다
 
 	public void update() {
@@ -159,6 +166,7 @@ public class StrategyManager {
 		//checkForge();
 		unlimitedExpantion();
 		getMaxWorker();
+
 	}
 
 	ArrayList<BaseLocation> expantionList = new ArrayList<>();
@@ -267,6 +275,7 @@ public class StrategyManager {
 	int mineralMoveCount = -3; // 상태값을 갖는다
 
 	Unit defenceZealot = null;
+
 	public void mainBaseDefence() {
 		// mineralMoveCount가 0 보다 크면 적군에게서 가장 먼 미네랄로 모인다 
 		if (mineralMoveCount > 0) {
@@ -325,7 +334,7 @@ public class StrategyManager {
 		if (enemyPosition == null) {
 			enemyPosition = InformationManager.Instance().getFirstChokePoint(MyBotModule.Broodwar.self()).getPoint();
 		}
-		if(defenceZealot == null || !defenceZealot.exists()) {
+		if (defenceZealot == null || !defenceZealot.exists()) {
 			for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
 				if (u.getType() == UnitType.Protoss_Zealot) {
 					defenceZealot = u;
@@ -333,7 +342,7 @@ public class StrategyManager {
 				}
 			}
 		}
-		if(defenceZealot != null || defenceZealot.exists()) {
+		if (defenceZealot != null && defenceZealot.exists()) {
 			commandUtil.attackMove(defenceZealot, enemyPosition);
 		}
 		for (Unit worker : MyBotModule.Broodwar.self().getUnits()) {
@@ -567,7 +576,7 @@ public class StrategyManager {
 			executeCombat(1);
 		}
 	}
-	
+
 	public void getMaxWorker() {
 		if (MyBotModule.Broodwar.getFrameCount() % 500 != 0)
 			return;
@@ -728,8 +737,10 @@ public class StrategyManager {
 	}
 
 	public int atackTiming = 0;
+	public Unit nearSupply = null;
 
 	public void executeCombat(int firstAttackStart) {
+		System.out.println(isEnterBrock);
 
 		if (isElimination)
 			return;
@@ -743,11 +754,61 @@ public class StrategyManager {
 			return;
 		}
 
+		BaseLocation targetBaseLocation = null;
+		double longDistance = 0;
+
+		for (BaseLocation baseLocation : InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer)) {
+			double distance = BWTA.getGroundDistance(InformationManager.Instance().getMainBaseLocation(InformationManager.Instance().selfPlayer).getTilePosition(), baseLocation.getTilePosition());
+
+			if (distance > longDistance) {
+				longDistance = distance;
+				targetBaseLocation = baseLocation;
+			}
+		}
+
 		if (InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits("Protoss_Zealot") >= firstAttackStart && InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).size() > 0) {
-			for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
-				if (u.getType() == UnitType.Protoss_Zealot && u.isIdle()) {
-					u.attack(InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).get(0).getPoint());
+			if(isEnterBrock >= 120) {
+				if(nearSupply == null) {
+					double min = 99999999;
+					for(Unit u :  MyBotModule.Broodwar.enemy().getUnits()) {
+						if(u.getType() == UnitType.Terran_Supply_Depot) {
+							double dd = BWTA.getGroundDistance(u.getTilePosition(), InformationManager.Instance().getMainBaseLocation(InformationManager.Instance().selfPlayer).getTilePosition());
+							if (dd < min) {
+								min = dd;
+								nearSupply = u;
+							}
+						}
+					}
 				}
+				if(nearSupply != null) {
+					for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
+						if (u.getType() == UnitType.Protoss_Zealot) {
+							u.stop();
+						}
+					}
+					isEnterBrock = 0;
+					return;
+				}
+				for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
+					if (u.getType() == UnitType.Protoss_Zealot) {
+						u.attack(nearSupply);
+					}
+				}
+			}
+			
+			boolean isAttacking = false;
+			for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
+				if (u.getType() == UnitType.Protoss_Zealot) {
+					if(InformationManager.Instance().enemyRace == Race.Terran && u.isAttackFrame()) {
+						isAttacking = true;
+					}
+					else if (u.isIdle()) {
+						u.attack(targetBaseLocation.getPoint());
+					}
+				}
+			}
+			if(!isAttacking) {
+				isEnterBrock++;
 			}
 		}
 	}
