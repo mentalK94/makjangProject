@@ -62,8 +62,8 @@ public class StrategyManager {
 	}
 
 	public boolean isHunter = false;
-	int halfheight = MyBotModule.Broodwar.mapHeight()/2;
-	int  halfwidth = MyBotModule.Broodwar.mapWidth()/2;
+	int halfheight;//= InformationManager.Instance().getSecondChokePoint(InformationManager.Instance().selfPlayer).getY(); //MyBotModule.Broodwar.mapHeight()/2;
+	int  halfwidth;// = InformationManager.Instance().getSecondChokePoint(InformationManager.Instance().selfPlayer).getX();// MyBotModule.Broodwar.mapWidth()/2;
 
 	/// 경기가 시작될 때 일회적으로 전략 초기 세팅 관련 로직을 실행합니다
 	public void onStart() {
@@ -77,6 +77,8 @@ public class StrategyManager {
 
 		// BasicBot 1.1 Patch End
 		// //////////////////////////////////////////////////
+		//halfheight = InformationManager.Instance().getSecondChokePoint(InformationManager.Instance().selfPlayer).getY();
+		//halfwidth = InformationManager.Instance().getSecondChokePoint(InformationManager.Instance().selfPlayer).getX();// MyBotModule.Broodwar.mapWidth()/2;
 		if (MyBotModule.Broodwar.mapFileName().toLowerCase().indexOf("hunter") != -1) {
 			isHunter = true;
 		}
@@ -85,9 +87,9 @@ public class StrategyManager {
 			maxWorkerCount = 18;
 
 			firstExpantion_createdZealot = 30;
-			firstExpantion_aliveZealot = 12;
+			firstExpantion_aliveZealot = 13;
 
-			toggleAttackMode_startAttack = 24;
+			toggleAttackMode_startAttack = 18;
 			toggleAttackMode_stopAttack = 12;
 
 		} else {
@@ -96,7 +98,7 @@ public class StrategyManager {
 			firstExpantion_createdZealot = 20;
 			firstExpantion_aliveZealot = 5;
 
-			toggleAttackMode_startAttack = 24;
+			toggleAttackMode_startAttack = 15;
 			toggleAttackMode_stopAttack = 12;
 		}
 		for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
@@ -178,11 +180,11 @@ public class StrategyManager {
 	TilePosition expantionPosition =null;
 
 	public void unlimitedExpantion() {
-		if (MyBotModule.Broodwar.getFrameCount() % 401 != 0)
+		if (MyBotModule.Broodwar.getFrameCount() % 403 != 0)
 			return;
 		if (!isFirstExpantion)
 			return;
-		if (InformationManager.Instance().selfPlayer.minerals() >= 350) {
+		if (!isUnlimitedExpantion && InformationManager.Instance().selfPlayer.minerals() >= 350) {
 			isUnlimitedExpantion = true;
 			currentNexus = InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits(UnitType.Protoss_Nexus.toString());
 		}
@@ -194,6 +196,8 @@ public class StrategyManager {
 			if (InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits(UnitType.Protoss_Nexus.toString()) <= currentNexus) {
 				for (BaseLocation r : BWTA.getBaseLocations()) {
 					if (InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().selfPlayer).contains(r))
+						continue;
+					if (InformationManager.Instance().getFirstExpansionLocation(InformationManager.Instance().selfPlayer).equals(r))
 						continue;
 					if (InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).contains(r))
 						continue;
@@ -222,7 +226,7 @@ public class StrategyManager {
 		int idle = 0;
 		for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
 			if (u.getType() == UnitType.Protoss_Zealot && !u.isAttacking() && !u.isUnderAttack()) {
-				if(BWTA.getGroundDistance(u.getTilePosition(), new TilePosition(halfwidth, halfheight) )<= 1000)
+				if(BWTA.getGroundDistance(u.getTilePosition(),  InformationManager.Instance().getSecondChokePoint(InformationManager.Instance().selfPlayer).getPoint().toTilePosition() )<= 1000)
 					idle ++;
 			}
 		}
@@ -242,7 +246,7 @@ public class StrategyManager {
 
 	public void firstExpantion() {
 
-		if (!isFirstExpantion && InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumCreatedUnits("Protoss_Zealot") >= firstExpantion_createdZealot && InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits("Protoss_Zealot") >= firstExpantion_aliveZealot) {
+		if (!isFirstExpantion && InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumCreatedUnits("Protoss_Zealot") >= firstExpantion_createdZealot && InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits("Protoss_Zealot") <= firstExpantion_aliveZealot) {
 			isReadyAttack = false;
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Nexus, BuildOrderItem.SeedPositionStrategy.FirstExpansionLocation);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Assimilator);
@@ -760,9 +764,9 @@ public class StrategyManager {
 		if(isUnlimitedExpantion)
 			return;
 		// InitialBuildOrder 진행중에는 아무것도 하지 않습니다
-/*		if (isInitialBuildOrderFinished == false) {
+		if (isInitialBuildOrderFinished == false) {
 			return;
-		}*/
+		}
 
 		// 기본 병력 추가 훈련
 		if (MyBotModule.Broodwar.self().minerals() >= 100 && MyBotModule.Broodwar.self().supplyUsed() < 390) {
@@ -783,7 +787,7 @@ public class StrategyManager {
 		if (!isReadyAttack) {
 			for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
 				if (u.getType() == UnitType.Protoss_Zealot && u.isIdle()) {
-					u.attack(new TilePosition(halfwidth, halfheight).toPosition());
+					u.attack( InformationManager.Instance().getSecondChokePoint(InformationManager.Instance().selfPlayer).getPoint());
 				}
 			}
 			return;
