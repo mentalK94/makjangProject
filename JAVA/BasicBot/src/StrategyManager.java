@@ -60,7 +60,7 @@ public class StrategyManager {
 		isFullScaleAttackStarted = false;
 		isInitialBuildOrderFinished = false;
 	}
-	
+
 	public boolean isHunter = false;
 
 	/// 경기가 시작될 때 일회적으로 전략 초기 세팅 관련 로직을 실행합니다
@@ -75,7 +75,7 @@ public class StrategyManager {
 
 		// BasicBot 1.1 Patch End
 		// //////////////////////////////////////////////////
-		if(MyBotModule.Broodwar.mapFileName().toLowerCase().indexOf("hunter") != -1 ) {
+		if (MyBotModule.Broodwar.mapFileName().toLowerCase().indexOf("hunter") != -1) {
 			isHunter = true;
 		}
 		if (MyBotModule.Broodwar.mapFileName().toLowerCase().indexOf("hunter") != -1 || InformationManager.Instance().enemyRace == Race.Protoss) {
@@ -176,7 +176,7 @@ public class StrategyManager {
 			return;
 		if (!isFirstExpantion)
 			return;
-		if (InformationManager.Instance().selfPlayer.minerals() < 400)
+		if (InformationManager.Instance().selfPlayer.minerals() < 350)
 			return;
 		for (BaseLocation r : BWTA.getBaseLocations()) {
 			if (expantionList.contains(r))
@@ -462,7 +462,14 @@ public class StrategyManager {
 			executeSupplyManagement();
 			executeBasicCombatUnitTraining();
 			executeCombat(15);
+		} else {
+			for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
+				if (u.getType() == UnitType.Protoss_Zealot && u.isIdle()) {
+					u.attack(InformationManager.Instance().getFirstChokePoint(MyBotModule.Broodwar.self()).getPoint());
+				}
+			}
 		}
+		
 
 		// GateWay 찾기
 		if (firstGate == null)
@@ -741,7 +748,6 @@ public class StrategyManager {
 
 	public void executeCombat(int firstAttackStart) {
 		System.out.println(isEnterBrock);
-
 		if (isElimination)
 			return;
 
@@ -754,61 +760,79 @@ public class StrategyManager {
 			return;
 		}
 
-		BaseLocation targetBaseLocation = null;
-		double longDistance = 0;
-
-		for (BaseLocation baseLocation : InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer)) {
-			double distance = BWTA.getGroundDistance(InformationManager.Instance().getMainBaseLocation(InformationManager.Instance().selfPlayer).getTilePosition(), baseLocation.getTilePosition());
-
-			if (distance > longDistance) {
-				longDistance = distance;
-				targetBaseLocation = baseLocation;
-			}
-		}
-
+		System.out.println("111111111");
 		if (InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits("Protoss_Zealot") >= firstAttackStart && InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).size() > 0) {
-			if(isEnterBrock >= 120) {
-				if(nearSupply == null) {
-					double min = 99999999;
-					for(Unit u :  MyBotModule.Broodwar.enemy().getUnits()) {
-						if(u.getType() == UnitType.Terran_Supply_Depot) {
-							double dd = BWTA.getGroundDistance(u.getTilePosition(), InformationManager.Instance().getMainBaseLocation(InformationManager.Instance().selfPlayer).getTilePosition());
-							if (dd < min) {
-								min = dd;
-								nearSupply = u;
-							}
+
+			BaseLocation targetBaseLocation = null;
+			double longDistance = 0;
+
+			for (BaseLocation baseLocation : InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer)) {
+				double distance = BWTA.getGroundDistance(InformationManager.Instance().getMainBaseLocation(InformationManager.Instance().selfPlayer).getTilePosition(), baseLocation.getTilePosition());
+
+				if (distance > longDistance) {
+					longDistance = distance;
+					targetBaseLocation = baseLocation;
+				}
+			}
+
+
+			System.out.println("222222222");
+			if (nearSupply != null) {
+				System.out.println("33333333333");
+				if (InformationManager.Instance().getUnitData(InformationManager.Instance().enemyPlayer).getNumDeadUnits("Terran_Supply_Depot") == 0) {
+					for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
+						if (u.getType() == UnitType.Protoss_Zealot) {
+							u.attack(nearSupply);
 						}
 					}
-				}
-				if(nearSupply != null) {
+					return;
+				} else {
 					for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
 						if (u.getType() == UnitType.Protoss_Zealot) {
 							u.stop();
 						}
 					}
+					nearSupply = null;
 					isEnterBrock = 0;
 					return;
+
 				}
-				for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
-					if (u.getType() == UnitType.Protoss_Zealot) {
-						u.attack(nearSupply);
+			}
+			System.out.println("4444444");
+			int createdMarine = InformationManager.Instance().getUnitData(InformationManager.Instance().enemyPlayer).getNumCreatedUnits("Terran_Marine");
+			int deadMarine = InformationManager.Instance().getUnitData(InformationManager.Instance().enemyPlayer).getNumDeadUnits("Terran_Marine");
+			int deadZealot = InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumDeadUnits("Protoss_Zealot");
+			if(createdMarine >= 1 && deadMarine == 0 && deadZealot == 0) {
+				System.out.println("5555555");
+				isEnterBrock++;;
+			}
+
+			if (isEnterBrock >= 300) {
+				double min = 99999999;
+				for (Unit u : MyBotModule.Broodwar.enemy().getUnits()) {
+					if (u.getType() == UnitType.Terran_Supply_Depot) {
+						double dd = BWTA.getGroundDistance(u.getTilePosition(), InformationManager.Instance().getMainBaseLocation(InformationManager.Instance().selfPlayer).getTilePosition());
+						if (dd < min) {
+							min = dd;
+							nearSupply = u;
+							return;
+						}
 					}
 				}
 			}
-			
-			boolean isAttacking = false;
+
 			for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
 				if (u.getType() == UnitType.Protoss_Zealot) {
-					if(InformationManager.Instance().enemyRace == Race.Terran && u.isAttackFrame()) {
-						isAttacking = true;
-					}
-					else if (u.isIdle()) {
+					if (u.isIdle()) {
 						u.attack(targetBaseLocation.getPoint());
 					}
 				}
 			}
-			if(!isAttacking) {
-				isEnterBrock++;
+		} else if (isHunter) {
+			for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
+				if (u.getType() == UnitType.Protoss_Zealot && u.isIdle()) {
+					u.attack(InformationManager.Instance().getFirstChokePoint(MyBotModule.Broodwar.self()).getPoint());
+				}
 			}
 		}
 	}
