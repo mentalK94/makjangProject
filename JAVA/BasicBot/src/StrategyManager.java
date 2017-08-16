@@ -469,7 +469,6 @@ public class StrategyManager {
 				}
 			}
 		}
-		
 
 		// GateWay 찾기
 		if (firstGate == null)
@@ -728,6 +727,8 @@ public class StrategyManager {
 		// ////////////////////////////////////////////////
 	}
 
+	Position enemyBuilding = null;
+
 	public void executeBasicCombatUnitTraining() {
 
 		// InitialBuildOrder 진행중에는 아무것도 하지 않습니다
@@ -747,7 +748,7 @@ public class StrategyManager {
 	public Unit nearSupply = null;
 
 	public void executeCombat(int firstAttackStart) {
-		System.out.println(isEnterBrock);
+		//System.out.println(isEnterBrock + " " + InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).size());
 		if (isElimination)
 			return;
 
@@ -759,19 +760,19 @@ public class StrategyManager {
 			}
 			return;
 		}
-		
-		Position enemyBuilding = null;
-		for (Unit u : MyBotModule.Broodwar.enemy().getUnits()) {
-			if (u.getType() == UnitType.Buildings) {
-				enemyBuilding =u.getPoint();
-				break;
+
+		if (enemyBuilding == null) {
+			for (Unit u : MyBotModule.Broodwar.enemy().getUnits()) {
+				if (u.getType() == UnitType.Terran_Supply_Depot || u.getType() == UnitType.Terran_Barracks || u.getType() == UnitType.Factories) {
+					enemyBuilding = u.getPoint();
+					break;
+				}
 			}
+			//System.out.println(enemyBuilding);
 		}
 
-
-		System.out.println("111111111");
-		if (InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits("Protoss_Zealot") >= firstAttackStart
-				&& (InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).size() != 0 || enemyBuilding != null)) {
+		//System.out.println("111111111");
+		if (InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits("Protoss_Zealot") >= firstAttackStart && (InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).size() != 0 || enemyBuilding != null)) {
 
 			BaseLocation targetBaseLocation = null;
 			double longDistance = 0;
@@ -784,68 +785,65 @@ public class StrategyManager {
 					targetBaseLocation = baseLocation;
 				}
 			}
-			
+
 			Position targetPosition = null;
-			if(targetBaseLocation == null)
+			if (targetBaseLocation == null)
 				targetPosition = enemyBuilding;
 			else
 				targetPosition = targetBaseLocation.getPoint();
-			
 
-			System.out.println("222222222");
-			if (nearSupply != null) {
-				System.out.println("33333333333");
-				if (InformationManager.Instance().getUnitData(InformationManager.Instance().enemyPlayer).getNumDeadUnits("Terran_Supply_Depot") == 0) {
-					for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
-						if (u.getType() == UnitType.Protoss_Zealot) {
-							u.attack(nearSupply);
-						}
+			if (nearSupply != null && InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumDeadUnits(nearSupply.getType().toString()) > 0) {
+				for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
+					if (u.getType() == UnitType.Protoss_Zealot) {
+						u.stop();
 					}
-					return;
-				} else {
-					for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
-						if (u.getType() == UnitType.Protoss_Zealot) {
-							u.stop();
-						}
-					}
-					nearSupply = null;
-					isEnterBrock = 0;
-					return;
-
 				}
+				isEnterBrock = -99999;
+				return;
+
 			}
-			System.out.println("4444444");
+			//System.out.println("4444444");
 			int createdMarine = InformationManager.Instance().getUnitData(InformationManager.Instance().enemyPlayer).getNumCreatedUnits("Terran_Marine");
 			int deadMarine = InformationManager.Instance().getUnitData(InformationManager.Instance().enemyPlayer).getNumDeadUnits("Terran_Marine");
 			int deadZealot = InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumDeadUnits("Protoss_Zealot");
-			if(createdMarine >= 1 && deadMarine == 0 && deadZealot == 0) {
-				System.out.println("5555555");
-				isEnterBrock++;;
+			if (createdMarine >= 1 && deadMarine == 0 && deadZealot == 0) {
+				//System.out.println("5555555");	
+				isEnterBrock++;
+				;
 			}
 
-			System.out.println("6666666");
-			if (isEnterBrock >= 1000) {
-				double min = 99999999;
-				for (Unit u : MyBotModule.Broodwar.enemy().getUnits()) {
-					if (u.getType() == UnitType.Buildings) {
-						double dd = BWTA.getGroundDistance(u.getTilePosition(), InformationManager.Instance().getMainBaseLocation(InformationManager.Instance().selfPlayer).getTilePosition());
-						if (dd < min) {
-							min = dd;
-							nearSupply = u;
-							return;
+			//System.out.println("6666666");
+			if (isEnterBrock >= 550) {
+				if (nearSupply == null) {
+					double min = 99999999;
+					for (Unit u : MyBotModule.Broodwar.enemy().getUnits()) {
+						if (u.getType() == UnitType.Terran_Supply_Depot || u.getType() == UnitType.Terran_Barracks || u.getType() == UnitType.Factories) {
+							double dd = BWTA.getGroundDistance(u.getTilePosition(), InformationManager.Instance().getMainBaseLocation(InformationManager.Instance().selfPlayer).getTilePosition());
+							if (dd < min) {
+								min = dd;
+								nearSupply = u;
+							}
+						}
+					}
+					return;
+				}
+				for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
+					if (u.getType() == UnitType.Protoss_Zealot) {
+						u.attack(nearSupply);
+					}
+				}
+			} else {
+				for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
+					if (u.getType() == UnitType.Protoss_Zealot) {
+						if (u.isIdle()) {
+							u.attack(targetPosition);
 						}
 					}
 				}
-			}
 
-			for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
-				if (u.getType() == UnitType.Protoss_Zealot) {
-					if (u.isIdle()) {
-						u.attack(targetPosition);
-					}
-				}
 			}
-		} else if (isHunter) {
+		}
+		if (isHunter) {
 			for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
 				if (u.getType() == UnitType.Protoss_Zealot && u.isIdle()) {
 					u.attack(InformationManager.Instance().getFirstChokePoint(MyBotModule.Broodwar.self()).getPoint());
