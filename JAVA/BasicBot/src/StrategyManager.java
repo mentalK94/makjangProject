@@ -150,11 +150,11 @@ public class StrategyManager {
 		}
 
 		mainBaseDefence();
-		//elimination();
-		//firstExpantion();
-		//toggleAttackMode();
+		elimination();
+		firstExpantion();
+		toggleAttackMode();
 		//checkForge();
-		//unlimitedExpantion();
+		unlimitedExpantion();
 	}
 
 	ArrayList<BaseLocation> expantionList = new ArrayList<>();
@@ -258,6 +258,7 @@ public class StrategyManager {
 	Position enemyPosition = null;
 	int mineralMoveCount = -3; // 상태값을 갖는다
 
+	Unit defenceZealot = null;
 	public void mainBaseDefence() {
 		// mineralMoveCount가 0 보다 크면 적군에게서 가장 먼 미네랄로 모인다 
 		if (mineralMoveCount > 0) {
@@ -316,8 +317,19 @@ public class StrategyManager {
 		if (enemyPosition == null) {
 			enemyPosition = InformationManager.Instance().getFirstChokePoint(MyBotModule.Broodwar.self()).getPoint();
 		}
+		if(defenceZealot == null || !defenceZealot.exists()) {
+			for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
+				if (u.getType() == UnitType.Protoss_Zealot) {
+					defenceZealot = u;
+					break;
+				}
+			}
+		}
+		if(defenceZealot != null || defenceZealot.exists()) {
+			commandUtil.attackMove(defenceZealot, enemyPosition);
+		}
 		for (Unit worker : MyBotModule.Broodwar.self().getUnits()) {
-			if (worker.getType() == UnitType.Protoss_Probe && BWTA.getGroundDistance(worker.getTilePosition(), mainBaseLocation.getTilePosition()) <= radius) {
+			if (worker.getType() == UnitType.Protoss_Probe && worker.isIdle() && BWTA.getGroundDistance(worker.getTilePosition(), mainBaseLocation.getTilePosition()) <= radius) {
 				commandUtil.attackMove(worker, enemyPosition);
 			}
 		}
@@ -432,22 +444,9 @@ public class StrategyManager {
 			executeWorkerTraining();
 			executeSupplyManagement();
 			executeBasicCombatUnitTraining();
-			executeCombat(12);
+			executeCombat(15);
 		}
 
-		// GateWay 찾기
-		if (firstGate == null)
-			for (Unit u : MyBotModule.Broodwar.self().getUnits())
-				if (u.getType() == UnitType.Protoss_Gateway)
-					firstGate = u;
-		if (firstGate != null && secondGate == null)
-			for (Unit u : MyBotModule.Broodwar.self().getUnits())
-				if (u.getType() == UnitType.Protoss_Gateway && u.getID() != firstGate.getID())
-					secondGate = u;
-		if (secondGate != null && thirdGate == null)
-			for (Unit u : MyBotModule.Broodwar.self().getUnits())
-				if (u.getType() == UnitType.Protoss_Gateway && u.getID() != firstGate.getID() && u.getID() != secondGate.getID())
-					thirdGate = u;
 	}
 
 	public void lostTempleUpdate() {
