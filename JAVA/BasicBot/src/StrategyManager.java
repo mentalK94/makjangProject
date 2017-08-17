@@ -761,8 +761,8 @@ public class StrategyManager {
 	Position enemyBuilding = null;
 
 	public void executeBasicCombatUnitTraining() {
-		if(isUnlimitedExpantion)
-			return;
+		//if(isUnlimitedExpantion)
+		//	return;
 		// InitialBuildOrder 진행중에는 아무것도 하지 않습니다
 		if (isInitialBuildOrderFinished == false) {
 			return;
