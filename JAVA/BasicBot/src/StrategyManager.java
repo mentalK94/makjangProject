@@ -149,6 +149,8 @@ public class StrategyManager {
 	public int maxWorkerCount;
 
 	public int isEnterBrock = 0;
+	
+	public boolean isMakeOb =false;
 
 	/// 경기 진행 중 매 프레임마다 경기 전략 관련 로직을 실행합니다
 
@@ -170,7 +172,7 @@ public class StrategyManager {
 		//checkForge();
 		unlimitedExpantion();
 		getMaxWorker();
-
+		makeOb();
 	}
 
 	ArrayList<BaseLocation> expantionList = new ArrayList<>();
@@ -252,10 +254,16 @@ public class StrategyManager {
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Assimilator);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway, false);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Cybernetics_Core, false);
+			if(InformationManager.Instance().enemyRace == Race.Protoss || InformationManager.Instance().enemyRace == Race.Zerg ) {
+				BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Robotics_Facility, false);
+				BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Observatory, false);
+				isMakeOb = true;
+			}
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Citadel_of_Adun, false);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UpgradeType.Leg_Enhancements, false);
 
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Pylon, BuildOrderItem.SeedPositionStrategy.FirstExpansionLocation, false);
+			//BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Pylon, BuildOrderItem.SeedPositionStrategy.FirstExpansionLocation, false);
+			
 			//BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Photon_Cannon, BuildOrderItem.SeedPositionStrategy.FirstExpansionLocation, false);
 			//BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Photon_Cannon, BuildOrderItem.SeedPositionStrategy.FirstExpansionLocation , false);
 			//BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Photon_Cannon, BuildOrderItem.SeedPositionStrategy.FirstExpansionLocation, false);
@@ -264,9 +272,18 @@ public class StrategyManager {
 			isFirstExpantion = true;
 		}
 	}
+	
+	public void makeOb() {
+		if (MyBotModule.Broodwar.getFrameCount() % 801 != 0)
+			return;
+		if(isMakeOb && InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits("Protoss_Observatory")!=0 
+				&& InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits("Protoss_Robotics_Facility")!=0 ) {
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Observer, true);
+		}
+	}
 
 	public void elimination() {
-		if (MyBotModule.Broodwar.getFrameCount() % 1501 != 0)
+		if (MyBotModule.Broodwar.getFrameCount() % 2701 != 0)
 			return;
 		if (!isElimination) {
 			if (InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits("Protoss_Zealot") >= 50) {
@@ -286,9 +303,13 @@ public class StrategyManager {
 			Random r = new Random();
 			int height = MyBotModule.Broodwar.mapHeight();
 			int width = MyBotModule.Broodwar.mapWidth();
+			int count = 0;
 			for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
 				if (u.getType() == UnitType.Protoss_Zealot) {
+					count++;
 					commandUtil.attackMove(u, new TilePosition(r.nextInt(width), r.nextInt(height)).toPosition());
+					if(count>=30)
+						return;
 				}
 			}
 		}
@@ -778,7 +799,7 @@ public class StrategyManager {
 
 	public int atackTiming = 0;
 	public Unit nearSupply = null;
-
+	public Unit z = null;
 	public void executeCombat(int firstAttackStart) {
 		//System.out.println(isEnterBrock + " " + InformationManager.Instance().getOccupiedBaseLocations(InformationManager.Instance().enemyPlayer).size());
 		if (isElimination)
@@ -788,6 +809,10 @@ public class StrategyManager {
 			for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
 				if (u.getType() == UnitType.Protoss_Zealot && u.isIdle()) {
 					u.attack( InformationManager.Instance().getSecondChokePoint(InformationManager.Instance().selfPlayer).getPoint());
+					z  = u;
+				}
+				if (u.getType() == UnitType.Protoss_Observer  && !u.isFollowing()) {
+					u.follow(z);
 				}
 			}
 			return;
@@ -797,7 +822,7 @@ public class StrategyManager {
 
 		if (enemyBuilding == null) {
 			for (Unit u : MyBotModule.Broodwar.enemy().getUnits()) {
-				if (u.getType() == UnitType.Terran_Supply_Depot || u.getType() == UnitType.Terran_Barracks || u.getType() == UnitType.Factories) {
+				if (u.getType() == UnitType.Terran_Supply_Depot || u.getType() == UnitType.Terran_Barracks || u.getType() == UnitType.Factories || u.getType() == UnitType.Protoss_Photon_Cannon) {
 					enemyBuilding = u.getPoint();
 					break;
 				}
@@ -840,7 +865,8 @@ public class StrategyManager {
 			int createdMarine = InformationManager.Instance().getUnitData(InformationManager.Instance().enemyPlayer).getNumCreatedUnits("Terran_Marine");
 			int deadMarine = InformationManager.Instance().getUnitData(InformationManager.Instance().enemyPlayer).getNumDeadUnits("Terran_Marine");
 			int deadZealot = InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumDeadUnits("Protoss_Zealot");
-			if (createdMarine >= 1 && deadMarine == 0 && deadZealot == 0) {
+			int bunker = InformationManager.Instance().getUnitData(InformationManager.Instance().enemyPlayer).getNumUnits("Terran_Bunker");
+			if (createdMarine >= 1 && deadMarine == 0 && deadZealot == 0 && bunker==0) {
 				//System.out.println("5555555");	
 				isEnterBrock++;
 				;
@@ -869,10 +895,21 @@ public class StrategyManager {
 					}
 				}
 			} else {
-				for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
-					if (u.getType() == UnitType.Protoss_Zealot) {
-						if (u.isIdle()) {
-							u.attack(targetPosition);
+				bunker = InformationManager.Instance().getUnitData(InformationManager.Instance().enemyPlayer).getNumUnits("Terran_Bunker");
+				int zealot = InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits("Protoss_Zealot");
+				if(bunker>0 && bunker*6 > zealot) {
+					for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
+						if (u.getType() == UnitType.Protoss_Zealot && BWTA.getGroundDistance(u.getTilePosition(), InformationManager.Instance().getMainBaseLocation(InformationManager.Instance().enemyPlayer).getTilePosition())>500) {
+							u.move(targetPosition);
+						}
+					}
+				}
+				else {
+					for (Unit u : MyBotModule.Broodwar.self().getUnits()) {
+						if (u.getType() == UnitType.Protoss_Zealot) {
+							if (u.isIdle()) {
+								u.attack(targetPosition);
+							}
 						}
 					}
 				}
