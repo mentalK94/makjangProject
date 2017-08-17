@@ -251,14 +251,14 @@ public class StrategyManager {
 		if (!isFirstExpantion && InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumCreatedUnits("Protoss_Zealot") >= firstExpantion_createdZealot && InformationManager.Instance().getUnitData(InformationManager.Instance().selfPlayer).getNumUnits("Protoss_Zealot") <= firstExpantion_aliveZealot) {
 			isReadyAttack = false;
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Nexus, BuildOrderItem.SeedPositionStrategy.FirstExpansionLocation);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Assimilator);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway, false);
-			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Cybernetics_Core, false);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Gateway, true);
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Cybernetics_Core, true);
 			if(InformationManager.Instance().enemyRace == Race.Protoss || InformationManager.Instance().enemyRace == Race.Zerg ) {
 				BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Robotics_Facility, false);
 				BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Observatory, false);
 				isMakeOb = true;
 			}
+			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Assimilator, false);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UnitType.Protoss_Citadel_of_Adun, false);
 			BuildManager.Instance().buildQueue.queueAsLowestPriority(UpgradeType.Leg_Enhancements, false);
 
@@ -942,7 +942,7 @@ public class StrategyManager {
 		try {
 			br = new BufferedReader(new FileReader(gameRecordFileName));
 
-			System.out.println("loadGameRecord from file: " + gameRecordFileName);
+			//System.out.println("loadGameRecord from file: " + gameRecordFileName);
 
 			String currentLine;
 			StringTokenizer st;
@@ -982,7 +982,7 @@ public class StrategyManager {
 				gameRecordList.add(tempGameRecord);
 			}
 		} catch (FileNotFoundException e) {
-			System.out.println("loadGameRecord failed. Could not open file :" + gameRecordFileName);
+			//System.out.println("loadGameRecord failed. Could not open file :" + gameRecordFileName);
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -1005,7 +1005,7 @@ public class StrategyManager {
 		// TODO : 파일명은 각자 봇 명에 맞게 수정하시기 바랍니다
 		String gameRecordFileName = "bwapi-data\\write\\makjangBot_GameRecord.dat";
 
-		System.out.println("saveGameRecord to file: " + gameRecordFileName);
+		//System.out.println("saveGameRecord to file: " + gameRecordFileName);
 
 		String mapName = MyBotModule.Broodwar.mapFileName();
 		mapName = mapName.replace(' ', '_');
